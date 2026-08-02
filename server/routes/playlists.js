@@ -12,17 +12,28 @@ function getOwnedPlaylist(playlistId, userId) {
         .get(playlistId, userId);
 }
 
+function rowToSong(row) {
+    return {
+        id: row.track_id,
+        displayName: row.title,
+        artist: row.artist,
+        cover: row.cover_url,
+        path: row.audio_url,
+        duration: row.duration,
+    };
+}
+
 router.get('/', (req, res) => {
     const playlists = db
         .prepare('SELECT * FROM playlists WHERE user_id = ?')
         .all(req.session.userId);
 
     const conCanciones = playlists.map((playlist) => {
-        const songIds = db
-            .prepare('SELECT song_id FROM playlist_songs WHERE playlist_id = ?')
+        const songs = db
+            .prepare('SELECT * FROM playlist_songs WHERE playlist_id = ?')
             .all(playlist.id)
-            .map((row) => row.song_id);
-        return { ...playlist, songIds };
+            .map(rowToSong);
+        return { ...playlist, songs };
     });
 
     res.json(conCanciones);
@@ -38,7 +49,7 @@ router.post('/', (req, res) => {
         .prepare('INSERT INTO playlists (user_id, nombre) VALUES (?, ?)')
         .run(req.session.userId, nombre);
 
-    res.json({ id: Number(info.lastInsertRowid), user_id: req.session.userId, nombre, songIds: [] });
+    res.json({ id: Number(info.lastInsertRowid), user_id: req.session.userId, nombre, songs: [] });
 });
 
 router.delete('/:id', (req, res) => {
@@ -58,24 +69,27 @@ router.post('/:id/songs', (req, res) => {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
     }
 
-    const songId = Number(req.body.songId);
-    if (!Number.isInteger(songId)) {
-        return res.status(400).json({ error: 'songId inválido.' });
+    const { id, displayName, artist, cover, path, duration } = req.body;
+    if (!id || !displayName || !artist || !cover || !path || !duration) {
+        return res.status(400).json({ error: 'Faltan datos de la canción.' });
     }
 
-    db.prepare('INSERT INTO playlist_songs (playlist_id, song_id) VALUES (?, ?)').run(playlist.id, songId);
+    db.prepare(
+        'INSERT INTO playlist_songs (playlist_id, track_id, title, artist, cover_url, audio_url, duration) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(playlist.id, Number(id), displayName, artist, cover, path, duration);
+
     res.json({ ok: true });
 });
 
-router.delete('/:id/songs/:songId', (req, res) => {
+router.delete('/:id/songs/:trackId', (req, res) => {
     const playlist = getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
     }
 
-    db.prepare('DELETE FROM playlist_songs WHERE playlist_id = ? AND song_id = ?').run(
+    db.prepare('DELETE FROM playlist_songs WHERE playlist_id = ? AND track_id = ?').run(
         playlist.id,
-        Number(req.params.songId)
+        Number(req.params.trackId)
     );
     res.json({ ok: true });
 });

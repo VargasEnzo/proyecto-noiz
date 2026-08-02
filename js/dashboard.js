@@ -1,6 +1,3 @@
-// Depende de que js/songs.js ya haya sido cargado antes en el HTML
-// (define la variable global `songs`).
-
 const songList = document.getElementById('song-list'),
     playlistList = document.getElementById('playlist-list'),
     newPlaylistBtn = document.getElementById('new-playlist-btn'),
@@ -29,13 +26,15 @@ const songList = document.getElementById('song-list'),
 const music = new Audio();
 
 let playlists = [];
+let homeSongs = []; // canciones populares de Jamendo, catálogo de "Inicio"
 let currentView = 'home'; // 'home' | 'search' | 'playlist'
 let activePlaylistId = null; // null salvo que currentView sea 'playlist'
-let displayedSongs = songs; // lo que se ve ahora mismo en song_side
-let playbackQueue = songs; // la lista dentro de la cual se mueven next/prev
+let displayedSongs = []; // lo que se ve ahora mismo en song_side
+let playbackQueue = []; // la lista dentro de la cual se mueven next/prev
 let musicIndex = 0;
 let currentSong = null;
 let isPlaying = false;
+let searchDebounceTimer = null;
 
 // --- Llamadas a la API ---
 
@@ -44,6 +43,18 @@ async function loadCurrentUser() {
     if (!response.ok) return;
     const user = await response.json();
     greeting.textContent = user.nombre;
+}
+
+async function fetchPopularTracks() {
+    const response = await fetch('/api/music/popular');
+    if (!response.ok) return [];
+    return response.json();
+}
+
+async function searchTracksRequest(query) {
+    const response = await fetch(`/api/music/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) return [];
+    return response.json();
 }
 
 async function fetchPlaylists() {
@@ -65,11 +76,11 @@ async function deletePlaylistRequest(id) {
     await fetch(`/api/playlists/${id}`, { method: 'DELETE' });
 }
 
-async function addSongToPlaylistRequest(playlistId, songId) {
+async function addSongToPlaylistRequest(playlistId, song) {
     await fetch(`/api/playlists/${playlistId}/songs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ songId }),
+        body: JSON.stringify(song),
     });
 }
 
@@ -89,7 +100,7 @@ function selectHome() {
     setActiveNav('home');
     renderPlaylistsSidebar();
     songSideTitle.textContent = 'Inicio';
-    renderSongList(songs);
+    renderSongList(homeSongs);
 }
 
 navHome.addEventListener('click', selectHome);
@@ -98,27 +109,22 @@ navExplorar.addEventListener('click', () => searchInput.focus());
 searchInput.addEventListener('input', () => {
     const raw = searchInput.value.trim();
     if (!raw) {
+        clearTimeout(searchDebounceTimer);
         selectHome();
         return;
     }
 
-    activePlaylistId = null;
-    setActiveNav('search');
-    renderPlaylistsSidebar();
-    songSideTitle.textContent = `Resultados para "${raw}"`;
-
-    const query = raw.toLowerCase();
-    const filtered = songs.filter(
-        (s) => s.displayName.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query)
-    );
-    renderSongList(filtered);
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(async () => {
+        activePlaylistId = null;
+        setActiveNav('search');
+        renderPlaylistsSidebar();
+        songSideTitle.textContent = `Resultados para "${raw}"`;
+        renderSongList(await searchTracksRequest(raw));
+    }, 300);
 });
 
 // --- Sidebar: playlists ---
-
-function songsForPlaylist(playlist) {
-    return playlist.songIds.map((id) => songs.find((s) => s.id === id)).filter(Boolean);
-}
 
 function renderPlaylistsSidebar() {
     playlistList.innerHTML = playlists
@@ -158,8 +164,9 @@ function selectPlaylist(id) {
     activePlaylistId = id;
     setActiveNav('playlist');
     renderPlaylistsSidebar();
-    songSideTitle.textContent = playlists.find((p) => p.id === id).nombre;
-    renderSongList(songsForPlaylist(playlists.find((p) => p.id === id)));
+    const playlist = playlists.find((p) => p.id === id);
+    songSideTitle.textContent = playlist.nombre;
+    renderSongList(playlist.songs);
 }
 
 // --- Modal "Nueva playlist" ---
@@ -214,7 +221,7 @@ addMenu.id = 'add-to-playlist-menu';
 addMenu.classList.add('hidden');
 document.body.appendChild(addMenu);
 
-function openAddMenu(anchorEl, songId) {
+function openAddMenu(anchorEl, song) {
     addMenu.innerHTML =
         playlists.length === 0
             ? '<p class="add-menu-empty">Creá una playlist primero</p>'
@@ -227,9 +234,9 @@ function openAddMenu(anchorEl, songId) {
 
     addMenu.querySelectorAll('button').forEach((btn) => {
         btn.addEventListener('click', async () => {
-            await addSongToPlaylistRequest(Number(btn.dataset.playlistId), songId);
-            const playlist = playlists.find((p) => p.id === Number(btn.dataset.playlistId));
-            playlist.songIds.push(songId);
+            const playlistId = Number(btn.dataset.playlistId);
+            await addSongToPlaylistRequest(playlistId, song);
+            playlists.find((p) => p.id === playlistId).songs.push(song);
             closeAddMenu();
         });
     });
@@ -253,8 +260,8 @@ function renderSongList(list) {
     songList.innerHTML = list
         .map((song, index) => {
             const actionIcon = activePlaylistId
-                ? `<i class="bi bi-dash-circle-fill remove-from-playlist-btn" data-song-id="${song.id}" title="Quitar de la playlist"></i>`
-                : `<i class="bi bi-plus-circle-fill add-to-playlist-btn" data-song-id="${song.id}" title="Agregar a playlist"></i>`;
+                ? `<i class="bi bi-dash-circle-fill remove-from-playlist-btn" title="Quitar de la playlist"></i>`
+                : `<i class="bi bi-plus-circle-fill add-to-playlist-btn" title="Agregar a playlist"></i>`;
 
             return `
         <li class="song-item" data-index="${index}" data-song-id="${song.id}">
@@ -272,15 +279,17 @@ function renderSongList(list) {
         .join('');
 
     songList.querySelectorAll('.song-item').forEach((item) => {
+        const song = list[Number(item.dataset.index)];
+
         item.addEventListener('click', (e) => {
             if (e.target.classList.contains('add-to-playlist-btn')) {
                 e.stopPropagation();
-                openAddMenu(e.target, Number(e.target.dataset.songId));
+                openAddMenu(e.target, song);
                 return;
             }
             if (e.target.classList.contains('remove-from-playlist-btn')) {
                 e.stopPropagation();
-                removeFromCurrentPlaylist(Number(e.target.dataset.songId));
+                removeFromCurrentPlaylist(song.id);
                 return;
             }
 
@@ -297,8 +306,8 @@ function renderSongList(list) {
 async function removeFromCurrentPlaylist(songId) {
     await removeSongFromPlaylistRequest(activePlaylistId, songId);
     const playlist = playlists.find((p) => p.id === activePlaylistId);
-    playlist.songIds = playlist.songIds.filter((id) => id !== songId);
-    renderSongList(songsForPlaylist(playlist));
+    playlist.songs = playlist.songs.filter((s) => s.id !== songId);
+    renderSongList(playlist.songs);
 }
 
 function highlightActiveSong() {
@@ -310,19 +319,21 @@ function highlightActiveSong() {
 // --- Columna "Descubrir" ---
 
 function getRecomendado() {
-    if (!currentSong) return songs[0];
-    const otras = songs.filter((s) => s.id !== currentSong.id);
+    if (homeSongs.length === 0) return null;
+    if (!currentSong) return homeSongs[0];
+    const otras = homeSongs.filter((s) => s.id !== currentSong.id);
     return otras.length > 0 ? otras[Math.floor(Math.random() * otras.length)] : null;
 }
 
 function getTopArtistas() {
     const counts = {};
-    songs.forEach((s) => {
+    homeSongs.forEach((s) => {
         counts[s.artist] = (counts[s.artist] || 0) + 1;
     });
     return Object.entries(counts)
         .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-        .sort((a, b) => b.cantidad - a.cantidad);
+        .sort((a, b) => b.cantidad - a.cantidad)
+        .slice(0, 5);
 }
 
 function renderDiscoverSide() {
@@ -330,7 +341,7 @@ function renderDiscoverSide() {
 
     recommendedCardEl.innerHTML = recomendado
         ? `
-        <div class="recommended-card" data-song-id="${recomendado.id}">
+        <div class="recommended-card">
             <img src="${recomendado.cover}" alt="${recomendado.displayName}">
             <div class="recommended-card-info">
                 <span class="recommended-card-title">${recomendado.displayName}</span>
@@ -343,8 +354,8 @@ function renderDiscoverSide() {
 
     if (recomendado) {
         recommendedCardEl.querySelector('.recommended-card').addEventListener('click', () => {
-            playbackQueue = songs;
-            musicIndex = songs.findIndex((s) => s.id === recomendado.id);
+            playbackQueue = homeSongs;
+            musicIndex = homeSongs.findIndex((s) => s.id === recomendado.id);
             loadMusic(playbackQueue[musicIndex]);
             playMusic();
         });
@@ -403,6 +414,7 @@ function loadMusic(song) {
 }
 
 function changeMusic(direction) {
+    if (playbackQueue.length === 0) return;
     musicIndex = (musicIndex + direction + playbackQueue.length) % playbackQueue.length;
     loadMusic(playbackQueue[musicIndex]);
     playMusic();
@@ -440,9 +452,13 @@ logoutBtn.addEventListener('click', async () => {
 
 async function init() {
     await loadCurrentUser();
-    playlists = await fetchPlaylists();
+    const [fetchedPlaylists, popular] = await Promise.all([fetchPlaylists(), fetchPopularTracks()]);
+    playlists = fetchedPlaylists;
+    homeSongs = popular;
     selectHome();
-    loadMusic(songs[0]);
+    if (homeSongs.length > 0) {
+        loadMusic(homeSongs[0]);
+    }
 }
 
 init();

@@ -1,9 +1,12 @@
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const path = require('node:path');
 
 const authRoutes = require('./routes/auth');
 const playlistsRoutes = require('./routes/playlists');
+const musicRoutes = require('./routes/music');
 const requireAuth = require('./middleware/requireAuth');
 
 const app = express();
@@ -27,6 +30,7 @@ app.use(
 
 app.use('/api', authRoutes);
 app.use('/api/playlists', playlistsRoutes);
+app.use('/api/music', musicRoutes);
 
 app.get('/', (req, res) => res.redirect('/html/login.html'));
 app.get('/html/dashboard.html', requireAuth, (req, res) => {

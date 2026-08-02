@@ -25,7 +25,12 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS playlist_songs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         playlist_id INTEGER NOT NULL,
-        song_id INTEGER NOT NULL
+        track_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        artist TEXT NOT NULL,
+        cover_url TEXT NOT NULL,
+        audio_url TEXT NOT NULL,
+        duration TEXT NOT NULL
     )
 `);
 
