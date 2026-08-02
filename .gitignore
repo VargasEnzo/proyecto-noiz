@@ -1,0 +1,17 @@
+# Sistema operativo
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Dependencias (cuando en el futuro usemos npm/node)
+node_modules/
+
+# Variables de entorno / secretos (cuando tengamos backend)
+.env
+.env.local
+
+# Logs
+*.log
+
+# Configuración local de la extensión de Claude (no compartir)
+.claude/settings.local.json
