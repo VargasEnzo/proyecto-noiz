@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/estiloslogin.css" />
   
 </head>
@@ -20,16 +21,32 @@
   <div class="login-image">
   </div>
   <div class="formulario">
-    <h2>Sign Up</h2>
-    <input type="text" placeholder="Nombre">
-    <input type="text" placeholder="Apellido">
-    <input type="text" placeholder="Email">
-    <input type="password" placeholder="Contraseña">
-    <input type="password" placeholder="Repetir contraseña">
-    <button>Sign In</button>
-    <!-- Agregá más elementos si querés -->
+    <h2 id="form-title">Iniciar sesión</h2>
+
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" required>
+      <input type="password" id="login-password" placeholder="Contraseña" required>
+      <p class="form-error" id="login-error"></p>
+      <button type="submit">Iniciar sesión</button>
+    </form>
+
+    <form id="register-form" class="hidden">
+      <input type="text" id="register-nombre" placeholder="Nombre" required>
+      <input type="text" id="register-apellido" placeholder="Apellido" required>
+      <input type="email" id="register-email" placeholder="Email" required>
+      <input type="password" id="register-password" placeholder="Contraseña" required>
+      <input type="password" id="register-repetir" placeholder="Repetir contraseña" required>
+      <p class="form-error" id="register-error"></p>
+      <button type="submit">Crear cuenta</button>
+    </form>
+
+    <p class="toggle-text">
+      <span id="toggle-to-register">¿No tenés cuenta? <a href="#">Registrate</a></span>
+      <span id="toggle-to-login" class="hidden">¿Ya tenés cuenta? <a href="#">Iniciá sesión</a></span>
+    </p>
   </div>
 </div>
 
+<script src="../js/login.js"></script>
 </body>
 </html>

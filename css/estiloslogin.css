@@ -31,11 +31,11 @@ body {
   display: flex;
   width: 1100px;
   height: 700px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(5px);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--color-glass-bg);
   margin: auto;
   position: relative;
   z-index: 1;
@@ -64,7 +64,7 @@ body {
 }
 
 .text-overlay span {
-  color: #AAB6FF;
+  color: var(--color-accent-soft);
 }
 
 .formulario {
@@ -81,7 +81,7 @@ body {
 .formulario h2 {
   margin-bottom: 30px;
   font-size: 40px;
-  color:#fdf7e7;
+  color: var(--color-text);
 }
 
 .formulario input {
@@ -94,20 +94,20 @@ body {
   background: transparent;
   outline: none;
   transition: border-color 0.3s;
-  color: #fdf7e7;
+  color: var(--color-text);
 }
 
 ::placeholder{
-    color: #fdf7e7;
+    color: var(--color-text);
 }
 
 .formulario button {
   padding: 14px;
   font-size: 16px;
-  background-color: #4A4AFF;
+  background-color: var(--color-accent);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.3s;
   font-family: 'Staatliches', sans-serif;
@@ -116,4 +116,26 @@ body {
 
 .formulario button:hover {
   background-color: #3a3ad1;
+}
+
+.hidden {
+  display: none;
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: 14px;
+  margin: -15px 0 15px;
+  min-height: 18px;
+}
+
+.toggle-text {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.toggle-text a {
+  color: var(--color-accent-soft);
+  cursor: pointer;
 }

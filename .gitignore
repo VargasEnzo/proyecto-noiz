@@ -3,8 +3,11 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Dependencias (cuando en el futuro usemos npm/node)
+# Dependencias
 node_modules/
+
+# Base de datos local (datos de prueba, no se versiona)
+server/database.sqlite
 
 # Variables de entorno / secretos (cuando tengamos backend)
 .env
