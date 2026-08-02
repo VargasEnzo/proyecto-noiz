@@ -1,0 +1,15 @@
+{
+  "name": "reproductor-mp3",
+  "version": "1.0.0",
+  "description": "Reproductor de musica tipo Spotify, hecho desde cero.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0"
+  }
+}
