@@ -734,7 +734,8 @@ header{
 
 /* --- Modal "Nueva playlist" --- */
 
-#new-playlist-modal-overlay{
+#new-playlist-modal-overlay,
+#profile-modal-overlay{
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -800,6 +801,118 @@ header{
 
 .modal-create-btn:hover{
   background-color: #3a3ad1;
+}
+
+/* --- Sidebar: perfil clickeable --- */
+
+.sidebar-profile-clickable{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: .2s linear;
+}
+
+.sidebar-profile-clickable:hover{
+  background-color: var(--color-glass-bg-strong);
+}
+
+#sidebar-avatar-img{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* --- Modal "Mi perfil" --- */
+
+.profile-modal-card{
+  width: 340px;
+}
+
+.profile-avatar-picker{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.profile-avatar-picker img,
+.profile-avatar-picker i{
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-avatar-picker i{
+  font-size: 90px;
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.profile-avatar-picker button{
+  background: none;
+  border: none;
+  color: var(--color-accent-soft);
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.profile-avatar-picker button:hover{
+  text-decoration: underline;
+}
+
+.profile-field-label{
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.profile-modal-card input{
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-glass-bg-strong);
+  color: var(--color-text);
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+.profile-modal-card input:disabled{
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.profile-meta-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.profile-plan-badge{
+  padding: 4px 12px;
+  border-radius: 20px;
+  background-color: var(--color-accent);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profile-created-at{
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
 /* ======================================================= */

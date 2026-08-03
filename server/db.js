@@ -9,7 +9,10 @@ db.exec(`
         nombre TEXT NOT NULL,
         apellido TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL
+        password_hash TEXT NOT NULL,
+        avatar TEXT,
+        plan TEXT NOT NULL DEFAULT 'Gratis',
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
 `);
 

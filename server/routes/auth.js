@@ -49,7 +49,36 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuthApi, (req, res) => {
     const user = db
-        .prepare('SELECT id, nombre, apellido, email FROM users WHERE id = ?')
+        .prepare('SELECT id, nombre, apellido, email, avatar, plan, created_at FROM users WHERE id = ?')
+        .get(req.session.userId);
+
+    res.json(user);
+});
+
+router.put('/me', requireAuthApi, (req, res) => {
+    const { nombre, apellido, avatar } = req.body;
+
+    if (!nombre || !apellido) {
+        return res.status(400).json({ error: 'Nombre y apellido son obligatorios.' });
+    }
+
+    if (avatar) {
+        db.prepare('UPDATE users SET nombre = ?, apellido = ?, avatar = ? WHERE id = ?').run(
+            nombre,
+            apellido,
+            avatar,
+            req.session.userId
+        );
+    } else {
+        db.prepare('UPDATE users SET nombre = ?, apellido = ? WHERE id = ?').run(
+            nombre,
+            apellido,
+            req.session.userId
+        );
+    }
+
+    const user = db
+        .prepare('SELECT id, nombre, apellido, email, avatar, plan, created_at FROM users WHERE id = ?')
         .get(req.session.userId);
 
     res.json(user);
