@@ -52,7 +52,7 @@ router.get('/me', requireAuthApi, (req, res) => {
         .prepare('SELECT id, nombre, apellido, email, avatar, plan, created_at FROM users WHERE id = ?')
         .get(req.session.userId);
 
-    res.json(user);
+    res.json({ ...user, isAdmin: user.email === process.env.ADMIN_EMAIL });
 });
 
 router.put('/me', requireAuthApi, (req, res) => {
@@ -81,7 +81,7 @@ router.put('/me', requireAuthApi, (req, res) => {
         .prepare('SELECT id, nombre, apellido, email, avatar, plan, created_at FROM users WHERE id = ?')
         .get(req.session.userId);
 
-    res.json(user);
+    res.json({ ...user, isAdmin: user.email === process.env.ADMIN_EMAIL });
 });
 
 module.exports = router;

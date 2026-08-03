@@ -27,7 +27,8 @@ const songList = document.getElementById('song-list'),
     logoutBtn = document.getElementById('logout-btn'),
     openProfileBtn = document.getElementById('open-profile-btn'),
     sidebarAvatarIcon = document.getElementById('sidebar-avatar-icon'),
-    sidebarAvatarImg = document.getElementById('sidebar-avatar-img');
+    sidebarAvatarImg = document.getElementById('sidebar-avatar-img'),
+    navAdmin = document.getElementById('nav-admin');
 
 const music = new Audio();
 
@@ -72,6 +73,7 @@ function renderSidebarProfile() {
         sidebarAvatarImg.classList.add('hidden');
         sidebarAvatarIcon.classList.remove('hidden');
     }
+    navAdmin.classList.toggle('hidden', !currentUser.isAdmin);
 }
 
 async function fetchPopularTracks() {
@@ -134,6 +136,7 @@ function selectHome() {
 
 navHome.addEventListener('click', selectHome);
 navExplorar.addEventListener('click', () => searchInput.focus());
+navAdmin.addEventListener('click', () => (window.location.href = 'admin.html'));
 
 searchInput.addEventListener('input', () => {
     const raw = searchInput.value.trim();
