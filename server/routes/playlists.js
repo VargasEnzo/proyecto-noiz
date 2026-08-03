@@ -6,10 +6,8 @@ const router = express.Router();
 
 router.use(requireAuthApi);
 
-function getOwnedPlaylist(playlistId, userId) {
-    return db
-        .prepare('SELECT * FROM playlists WHERE id = ? AND user_id = ?')
-        .get(playlistId, userId);
+async function getOwnedPlaylist(playlistId, userId) {
+    return db.get('SELECT * FROM playlists WHERE id = ? AND user_id = ?', playlistId, userId);
 }
 
 function rowToSong(row) {
@@ -23,48 +21,45 @@ function rowToSong(row) {
     };
 }
 
-router.get('/', (req, res) => {
-    const playlists = db
-        .prepare('SELECT * FROM playlists WHERE user_id = ?')
-        .all(req.session.userId);
+router.get('/', async (req, res) => {
+    const playlists = await db.all('SELECT * FROM playlists WHERE user_id = ?', req.session.userId);
 
-    const conCanciones = playlists.map((playlist) => {
-        const songs = db
-            .prepare('SELECT * FROM playlist_songs WHERE playlist_id = ?')
-            .all(playlist.id)
-            .map(rowToSong);
-        return { ...playlist, songs };
-    });
+    const conCanciones = await Promise.all(
+        playlists.map(async (playlist) => {
+            const songs = (await db.all('SELECT * FROM playlist_songs WHERE playlist_id = ?', playlist.id)).map(
+                rowToSong
+            );
+            return { ...playlist, songs };
+        })
+    );
 
     res.json(conCanciones);
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { nombre } = req.body;
     if (!nombre) {
         return res.status(400).json({ error: 'La playlist necesita un nombre.' });
     }
 
-    const info = db
-        .prepare('INSERT INTO playlists (user_id, nombre) VALUES (?, ?)')
-        .run(req.session.userId, nombre);
+    const info = await db.run('INSERT INTO playlists (user_id, nombre) VALUES (?, ?)', req.session.userId, nombre);
 
     res.json({ id: Number(info.lastInsertRowid), user_id: req.session.userId, nombre, songs: [] });
 });
 
-router.delete('/:id', (req, res) => {
-    const playlist = getOwnedPlaylist(req.params.id, req.session.userId);
+router.delete('/:id', async (req, res) => {
+    const playlist = await getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
     }
 
-    db.prepare('DELETE FROM playlist_songs WHERE playlist_id = ?').run(playlist.id);
-    db.prepare('DELETE FROM playlists WHERE id = ?').run(playlist.id);
+    await db.run('DELETE FROM playlist_songs WHERE playlist_id = ?', playlist.id);
+    await db.run('DELETE FROM playlists WHERE id = ?', playlist.id);
     res.json({ ok: true });
 });
 
-router.post('/:id/songs', (req, res) => {
-    const playlist = getOwnedPlaylist(req.params.id, req.session.userId);
+router.post('/:id/songs', async (req, res) => {
+    const playlist = await getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
     }
@@ -74,20 +69,28 @@ router.post('/:id/songs', (req, res) => {
         return res.status(400).json({ error: 'Faltan datos de la canción.' });
     }
 
-    db.prepare(
-        'INSERT INTO playlist_songs (playlist_id, track_id, title, artist, cover_url, audio_url, duration) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    ).run(playlist.id, Number(id), displayName, artist, cover, path, duration);
+    await db.run(
+        'INSERT INTO playlist_songs (playlist_id, track_id, title, artist, cover_url, audio_url, duration) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        playlist.id,
+        Number(id),
+        displayName,
+        artist,
+        cover,
+        path,
+        duration
+    );
 
     res.json({ ok: true });
 });
 
-router.delete('/:id/songs/:trackId', (req, res) => {
-    const playlist = getOwnedPlaylist(req.params.id, req.session.userId);
+router.delete('/:id/songs/:trackId', async (req, res) => {
+    const playlist = await getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
     }
 
-    db.prepare('DELETE FROM playlist_songs WHERE playlist_id = ? AND track_id = ?').run(
+    await db.run(
+        'DELETE FROM playlist_songs WHERE playlist_id = ? AND track_id = ?',
         playlist.id,
         Number(req.params.trackId)
     );

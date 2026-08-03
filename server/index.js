@@ -20,6 +20,10 @@ if (IS_PRODUCTION) {
     app.set('trust proxy', 1);
 }
 
+app.use((req, res, next) => {
+    db.ready.then(() => next()).catch(next);
+});
+
 app.use(express.json());
 app.use(
     session({
@@ -39,8 +43,8 @@ app.get('/', (req, res) => res.redirect('/html/login.html'));
 app.get('/html/dashboard.html', requireAuth, (req, res) => {
     res.sendFile(path.join(PROJECT_ROOT, 'html', 'dashboard.html'));
 });
-app.get('/html/admin.html', requireAuth, (req, res) => {
-    const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId);
+app.get('/html/admin.html', requireAuth, async (req, res) => {
+    const user = await db.get('SELECT email FROM users WHERE id = ?', req.session.userId);
     if (!user || user.email !== process.env.ADMIN_EMAIL) {
         return res.redirect('/html/dashboard.html');
     }
