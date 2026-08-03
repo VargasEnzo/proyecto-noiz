@@ -47,8 +47,27 @@ app.get('/html/admin.html', requireAuth, (req, res) => {
     res.sendFile(path.join(PROJECT_ROOT, 'html', 'admin.html'));
 });
 
-app.use(express.static(PROJECT_ROOT));
+app.use('/css', express.static(path.join(PROJECT_ROOT, 'css')));
+app.use('/js', express.static(path.join(PROJECT_ROOT, 'js')));
+app.use('/IMAGENES', express.static(path.join(PROJECT_ROOT, 'IMAGENES')));
+app.use('/musica-html', express.static(path.join(PROJECT_ROOT, 'MUSICA HTML')));
+app.use('/html', express.static(path.join(PROJECT_ROOT, 'html')));
+app.get('/manifest.json', (req, res) => res.sendFile(path.join(PROJECT_ROOT, 'manifest.json')));
+app.get('/service-worker.js', (req, res) => res.sendFile(path.join(PROJECT_ROOT, 'service-worker.js')));
 
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
+app.use('/api', (req, res) => {
+    res.status(404).json({ error: 'Recurso no encontrado.' });
 });
+
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+});
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en el puerto ${PORT}`);
+    });
+}
+
+module.exports = app;

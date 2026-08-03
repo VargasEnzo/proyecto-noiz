@@ -14,33 +14,33 @@ const music = new Audio();
 
 const songs = [
     {
-        path: '../MUSICA HTML/1-Heartless.mp3',
+        path: '/musica-html/1-Heartless.mp3',
         displayName: 'Heartless',
-        cover: '../MUSICA HTML/heartless.jpg',
+        cover: '/musica-html/heartless.jpg',
         artist: 'The Weeknd',
     },
     {
-        path: '../MUSICA HTML/2-Blinding Lights.mp3',
+        path: '/musica-html/2-Blinding Lights.mp3',
         displayName: 'Blinding Lights',
-        cover: '../MUSICA HTML/blinding.jpg',
+        cover: '/musica-html/blinding.jpg',
         artist: 'The Weeknd',
     },
     {
-        path: '../MUSICA HTML/3-Save Your Tears.mp3',
+        path: '/musica-html/3-Save Your Tears.mp3',
         displayName: 'Save Your Tears',
-        cover: '../MUSICA HTML/save_your_tears.jpg',
+        cover: '/musica-html/save_your_tears.jpg',
         artist: 'The Weeknd',
     },
     {
-        path: '../MUSICA HTML/4-After Hours.mp3',
+        path: '/musica-html/4-After Hours.mp3',
         displayName: 'After Hours',
-        cover: '../MUSICA HTML/after.jpg',
+        cover: '/musica-html/after.jpg',
         artist: 'The Weeknd',
     },
     {
-        path: '../MUSICA HTML/5-Scared To Live.mp3',
+        path: '/musica-html/5-Scared To Live.mp3',
         displayName: 'Scared To Live',
-        cover: '../MUSICA HTML/front.jpg',
+        cover: '/musica-html/front.jpg',
         artist: 'The Weeknd',
     }
 ];

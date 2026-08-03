@@ -2,6 +2,15 @@ const statUsuarios = document.getElementById('stat-usuarios');
 const statPlaylists = document.getElementById('stat-playlists');
 const usersBody = document.getElementById('admin-users-body');
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 async function fetchStats() {
     const response = await fetch('/api/admin/stats');
     if (!response.ok) return { totalUsuarios: 0, totalPlaylists: 0 };
@@ -63,7 +72,7 @@ async function openPlaylistsModal(userId) {
         ? playlists
               .map(
                   (p) =>
-                      `<p>${p.nombre} — ${p.cantidadCanciones} canción${p.cantidadCanciones === 1 ? '' : 'es'}</p>`
+                      `<p>${escapeHtml(p.nombre)} — ${p.cantidadCanciones} canción${p.cantidadCanciones === 1 ? '' : 'es'}</p>`
               )
               .join('')
         : '<p>Este usuario no tiene playlists.</p>';
@@ -77,8 +86,8 @@ function renderUsers(users) {
         .map(
             (u) => `
         <tr data-user-id="${u.id}">
-            <td>${u.nombre} ${u.apellido}</td>
-            <td>${u.email}</td>
+            <td>${escapeHtml(u.nombre)} ${escapeHtml(u.apellido)}</td>
+            <td>${escapeHtml(u.email)}</td>
             <td>
                 <select class="admin-plan-select" data-user-id="${u.id}">
                     <option value="Gratis" ${u.plan === 'Gratis' ? 'selected' : ''}>Gratis</option>
