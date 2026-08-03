@@ -114,6 +114,7 @@
       </div>
       <div class="mp-controls-wrap">
         <div class="mp-controls">
+          <i class="bi bi-shuffle" id="mp-shuffle" title="Aleatorio"></i>
           <i class="bi bi-skip-start-fill" id="mp-prev" title="Anterior"></i>
           <i class="bi bi-play-fill mp-play-button" id="mp-play" title="Play"></i>
           <i class="bi bi-skip-end-fill" id="mp-next" title="Siguiente"></i>
@@ -125,6 +126,10 @@
           </div>
           <span id="mp-duration">0:00</span>
         </div>
+      </div>
+      <div class="mp-volume-wrap">
+        <i class="bi bi-volume-up-fill" id="mp-volume-icon" title="Silenciar"></i>
+        <input type="range" id="mp-volume-slider" min="0" max="1" step="0.01" value="1">
       </div>
     </div>
   </header>

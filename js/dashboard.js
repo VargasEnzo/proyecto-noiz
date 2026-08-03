@@ -20,6 +20,9 @@ const songList = document.getElementById('song-list'),
     mpPrevBtn = document.getElementById('mp-prev'),
     mpNextBtn = document.getElementById('mp-next'),
     mpPlayBtn = document.getElementById('mp-play'),
+    mpShuffleBtn = document.getElementById('mp-shuffle'),
+    mpVolumeIcon = document.getElementById('mp-volume-icon'),
+    mpVolumeSlider = document.getElementById('mp-volume-slider'),
     greeting = document.getElementById('greeting'),
     logoutBtn = document.getElementById('logout-btn');
 
@@ -34,6 +37,7 @@ let playbackQueue = []; // la lista dentro de la cual se mueven next/prev
 let musicIndex = 0;
 let currentSong = null;
 let isPlaying = false;
+let isShuffle = false;
 let searchDebounceTimer = null;
 
 // --- Llamadas a la API ---
@@ -415,9 +419,30 @@ function loadMusic(song) {
 
 function changeMusic(direction) {
     if (playbackQueue.length === 0) return;
-    musicIndex = (musicIndex + direction + playbackQueue.length) % playbackQueue.length;
+
+    if (isShuffle && direction === 1 && playbackQueue.length > 1) {
+        let nuevoIndex;
+        do {
+            nuevoIndex = Math.floor(Math.random() * playbackQueue.length);
+        } while (nuevoIndex === musicIndex);
+        musicIndex = nuevoIndex;
+    } else {
+        musicIndex = (musicIndex + direction + playbackQueue.length) % playbackQueue.length;
+    }
+
     loadMusic(playbackQueue[musicIndex]);
     playMusic();
+}
+
+function toggleShuffle() {
+    isShuffle = !isShuffle;
+    mpShuffleBtn.classList.toggle('active', isShuffle);
+}
+
+function toggleMute() {
+    music.muted = !music.muted;
+    mpVolumeIcon.classList.toggle('bi-volume-up-fill', !music.muted);
+    mpVolumeIcon.classList.toggle('bi-volume-mute-fill', music.muted);
 }
 
 function updateProgressBar() {
@@ -439,6 +464,12 @@ function setProgressBar(e) {
 mpPlayBtn.addEventListener('click', togglePlay);
 mpPrevBtn.addEventListener('click', () => changeMusic(-1));
 mpNextBtn.addEventListener('click', () => changeMusic(1));
+mpShuffleBtn.addEventListener('click', toggleShuffle);
+mpVolumeIcon.addEventListener('click', toggleMute);
+mpVolumeSlider.addEventListener('input', () => {
+    music.volume = Number(mpVolumeSlider.value);
+    if (music.muted) toggleMute();
+});
 music.addEventListener('ended', () => changeMusic(1));
 music.addEventListener('timeupdate', updateProgressBar);
 mpProgressBar.addEventListener('click', setProgressBar);

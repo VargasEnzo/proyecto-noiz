@@ -647,6 +647,10 @@ header{
   color: var(--color-accent-soft);
 }
 
+.mp-controls i.active{
+  color: var(--color-accent-soft);
+}
+
 .mp-play-button{
   font-size: 28px !important;
 }
@@ -674,6 +678,58 @@ header{
   border-radius: 4px;
   background-color: var(--color-accent-soft);
   transition: width .1s linear;
+}
+
+.mp-volume-wrap{
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 15%;
+}
+
+.mp-volume-wrap i{
+  font-size: 17px;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: .2s linear;
+}
+
+.mp-volume-wrap i:hover{
+  color: var(--color-accent-soft);
+}
+
+.mp-volume-wrap input[type="range"]{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+.mp-volume-wrap input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--color-accent-soft);
+}
+
+.mp-volume-wrap input[type="range"]::-moz-range-thumb{
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--color-accent-soft);
+}
+
+.mp-volume-wrap input[type="range"]::-moz-range-progress{
+  height: 4px;
+  border-radius: 4px;
+  background-color: var(--color-accent-soft);
 }
 
 /* --- Modal "Nueva playlist" --- */
@@ -933,6 +989,14 @@ header{
   }
 
   .mp-progress-wrap span{
+    display: none;
+  }
+
+  .mp-volume-wrap{
+    width: auto;
+  }
+
+  .mp-volume-wrap input[type="range"]{
     display: none;
   }
 }
