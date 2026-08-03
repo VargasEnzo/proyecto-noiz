@@ -3,21 +3,21 @@ process.env.DB_PATH = ':memory:';
 process.env.SESSION_SECRET = 'test-secret';
 process.env.ADMIN_EMAIL = 'admin@test.com';
 process.env.JAMENDO_CLIENT_ID = 'test-client-id';
-process.env.RESEND_API_KEY = 'test-resend-key';
+process.env.GMAIL_USER = 'test@gmail.com';
+process.env.GMAIL_APP_PASSWORD = 'test-app-password';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
+const nodemailer = require('nodemailer');
 
 let lastEmailSent = null;
-const originalFetch = global.fetch;
-global.fetch = async (url, options) => {
-    if (String(url).startsWith('https://api.resend.com')) {
-        lastEmailSent = JSON.parse(options.body);
-        return { ok: true, json: async () => ({ id: 'test' }), text: async () => '' };
-    }
-    return originalFetch(url, options);
-};
+nodemailer.createTransport = () => ({
+    sendMail: async (options) => {
+        lastEmailSent = options;
+        return { messageId: 'test' };
+    },
+});
 
 const app = require('../server/index');
 
