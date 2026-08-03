@@ -61,10 +61,10 @@
       <nav class="playlist">
         <h4 class="active" id="nav-home"><i class="bi bi-house-door-fill"></i>Inicio</h4>
         <h4 id="nav-explorar"><i class="bi bi-search"></i>Explorar</h4>
-        <h4><i class="bi bi-music-note-list"></i>Géneros</h4>
-        <h4><i class="bi bi-broadcast"></i>Radio</h4>
-        <h4><i class="bi bi-people-fill"></i>Artistas</h4>
-        <h4><i class="bi bi-folder-fill"></i>Albums</h4>
+        <h4 id="nav-generos"><i class="bi bi-music-note-list"></i>Géneros</h4>
+        <h4 id="nav-radio"><i class="bi bi-broadcast"></i>Radio</h4>
+        <h4 id="nav-artistas"><i class="bi bi-people-fill"></i>Artistas</h4>
+        <h4 id="nav-albums"><i class="bi bi-folder-fill"></i>Albums</h4>
         <h4 id="nav-admin" class="hidden"><i class="bi bi-shield-lock-fill"></i>Administración</h4>
 
         <div class="sidebar-divider"></div>
@@ -97,6 +97,7 @@
       </div>
 
       <h3 class="song_side_title" id="song-side-title">Inicio</h3>
+      <div class="browse-chips hidden" id="browse-chips"></div>
       <ul class="song-list" id="song-list"></ul>
     </div>
 
@@ -139,7 +140,7 @@
   </header>
 
   <script src="../js/pwa.js"></script>
-  <script src="../js/dashboard.js"></script>
+  <script type="module" src="../js/dashboard/main.js"></script>
 </body>
 
 

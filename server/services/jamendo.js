@@ -11,6 +11,7 @@ function normalizeTrack(track) {
         id: Number(track.id),
         displayName: track.name,
         artist: track.artist_name,
+        album: track.album_name || '',
         cover: track.image,
         path: track.audio,
         duration: formatDuration(track.duration),
@@ -37,4 +38,8 @@ function searchTracks(query) {
     return fetchTracks({ search: query, limit: 20 });
 }
 
-module.exports = { getPopularTracks, searchTracks };
+function getTracksByTag(tag) {
+    return fetchTracks({ tags: tag, order: 'popularity_total', limit: 20 });
+}
+
+module.exports = { getPopularTracks, searchTracks, getTracksByTag };

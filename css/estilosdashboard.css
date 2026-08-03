@@ -376,6 +376,29 @@ header{
   margin-bottom: 15px;
 }
 
+.browse-chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.browse-chip{
+  background-color: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: .2s linear;
+}
+
+.browse-chip:hover, .browse-chip.active{
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
 .song-list{
   list-style: none;
 }
