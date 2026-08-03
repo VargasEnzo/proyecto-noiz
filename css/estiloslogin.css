@@ -129,6 +129,12 @@ body {
   min-height: 18px;
 }
 
+.form-success {
+  color: #6bd97a;
+  font-size: 14px;
+  margin: -15px 0 15px;
+}
+
 .toggle-text {
   margin-top: 20px;
   font-size: 14px;

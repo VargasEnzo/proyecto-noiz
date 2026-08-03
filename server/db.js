@@ -1,7 +1,7 @@
 const { DatabaseSync } = require('node:sqlite');
 const path = require('node:path');
 
-const db = new DatabaseSync(path.join(__dirname, 'database.sqlite'));
+const db = new DatabaseSync(process.env.DB_PATH || path.join(__dirname, 'database.sqlite'));
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -12,6 +12,17 @@ db.exec(`
         password_hash TEXT NOT NULL,
         avatar TEXT,
         plan TEXT NOT NULL DEFAULT 'Gratis',
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        used INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
 `);
