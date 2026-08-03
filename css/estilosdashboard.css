@@ -87,6 +87,18 @@ header{
   height: 70px;
 }
 
+/* --- Elementos exclusivos de mobile (ocultos por defecto en escritorio) --- */
+
+.mobile-menu-toggle{
+  display: none;
+}
+
+.mobile-topbar,
+.mobile-backdrop,
+.drawer-close-btn{
+  display: none;
+}
+
 /* Scrollbar acorde al resto de la interfaz (en vez de la barra blanca por defecto) */
 
 .playlist,
@@ -732,4 +744,195 @@ header{
 
 .modal-create-btn:hover{
   background-color: #3a3ad1;
+}
+
+/* ======================================================= */
+/* --- Responsive: celulares y tablets chicas (<=768px) --- */
+/* ======================================================= */
+
+@media (max-width: 768px){
+
+  body{
+    place-items: stretch;
+  }
+
+  header{
+    width: 100vw;
+    height: 100vh;
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .discover_side{
+    display: none;
+  }
+
+  /* Barra superior compacta (logo + hamburguesa), reemplaza a la sidebar */
+  .mobile-topbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0 16px;
+    backdrop-filter: blur(14px);
+    background-color: var(--color-panel-bg);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+  }
+
+  .mobile-topbar-logo{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Staatliches', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  .mobile-topbar-logo .sidebar-logo-icon{
+    width: 26px;
+    height: 26px;
+  }
+
+  .hamburger-btn{
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--color-text);
+  }
+
+  /* Fondo oscuro detrás del cajón, cierra el menú al tocarlo */
+  .mobile-backdrop{
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .55);
+    z-index: 39;
+    cursor: pointer;
+  }
+
+  #mobile-menu-toggle:checked ~ .mobile-backdrop{
+    display: block;
+  }
+
+  /* La sidebar pasa a ser un cajón deslizable, oculto por defecto */
+  .menu_side{
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 80vw;
+    max-width: 300px;
+    border-radius: 0;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    z-index: 40;
+  }
+
+  #mobile-menu-toggle:checked ~ .menu_side{
+    transform: translateX(0);
+  }
+
+  .drawer-close-btn{
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 14px 0;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--color-text);
+  }
+
+  .song_side{
+    grid-column: 1;
+    grid-row: 2;
+    padding: 14px;
+  }
+
+  .now-playing-hero{
+    height: 160px;
+    margin-bottom: 14px;
+  }
+
+  .now-playing-hero-overlay h2{
+    font-size: 24px;
+  }
+
+  .master_play{
+    grid-column: 1;
+    grid-row: 3;
+    padding: 0 12px;
+    height: 64px;
+  }
+}
+
+/* ======================================================= */
+/* --- Responsive: celulares chicos (<=420px) --- */
+/* ======================================================= */
+
+@media (max-width: 420px){
+
+  header{
+    padding: 6px;
+    gap: 8px;
+  }
+
+  .now-playing-hero{
+    height: 130px;
+  }
+
+  .now-playing-hero-overlay{
+    padding: 16px;
+  }
+
+  .now-playing-hero-overlay h2{
+    font-size: 20px;
+  }
+
+  .song-item img{
+    width: 36px;
+    height: 36px;
+    margin: 0 10px;
+  }
+
+  .song-item-index{
+    display: none;
+  }
+
+  .master_play{
+    padding: 0 8px;
+    height: 60px;
+  }
+
+  .now-playing{
+    width: auto;
+    max-width: 40%;
+    min-width: 0;
+  }
+
+  .now-playing img{
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+  }
+
+  .now-playing-info p{
+    display: none;
+  }
+
+  .mp-controls-wrap{
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mp-controls{
+    gap: 14px;
+  }
+
+  .mp-progress-wrap span{
+    display: none;
+  }
 }
