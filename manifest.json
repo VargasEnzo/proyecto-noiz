@@ -1,0 +1,23 @@
+{
+  "name": "Noiz",
+  "short_name": "Noiz",
+  "description": "Escuchá música gratis, armá tus playlists.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14172a",
+  "theme_color": "#4A4AFF",
+  "icons": [
+    {
+      "src": "/IMAGENES/logo-noiz.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/IMAGENES/logo-noiz.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
