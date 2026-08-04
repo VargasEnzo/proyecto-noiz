@@ -80,6 +80,24 @@ body {
   justify-content: center;
 }
 
+.formulario-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  font-family: 'Staatliches', sans-serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: var(--color-text);
+}
+
+.formulario-logo-icon {
+  width: 32px;
+  height: 32px;
+  filter: brightness(0) invert(1);
+}
+
 .formulario h2 {
   margin-bottom: 30px;
   font-size: 40px;

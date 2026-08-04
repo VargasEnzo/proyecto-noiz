@@ -4,6 +4,18 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-04 (3) — Arreglar el desfasaje real en mobile y logo en el login
+
+Los arreglos de mobile de la entrada anterior (el "2") no alcanzaron: probando ya desplegado en un celular Android, la interfaz seguía desfasándose (texto cortado, contenido más ancho que la pantalla). El motivo era otro, y solo aparecía con datos reales (no se veía en local porque ahí no había canciones cargadas):
+
+- **Causa real**: `.now-playing-hero-overlay h2` (el título de la canción sonando, en la card "Sonando ahora") no tenía ningún límite de ancho ni truncado. Con los títulos largos reales que vienen de YouTube (tipo "Artista - Canción (Video Oficial) ft. Fulano, Mengano..."), el texto forzaba a crecer la columna del grid del dashboard entera (`.song_side`, `.mobile-topbar`, todo lo que comparte esa columna) más allá del ancho de la pantalla — el clásico bug de "blowout" de CSS Grid, donde un track `1fr` no se achica por debajo del contenido mínimo de sus items a menos que se le diga explícitamente. Confirmado midiendo directamente en producción con Playwright emulando un Android real: el panel llegaba a medir 646px en una pantalla de 412px.
+- **Arreglo**: el título del hero ahora trunca a 2 líneas con "…" (`-webkit-line-clamp`), y se agregó `min-width: 0` a los items del grid mobile (`.mobile-topbar`, `.song_side`, `.master_play`) — el fix estándar para este tipo de bug, que además protege contra que aparezca de nuevo con cualquier otro contenido largo en el futuro. Se sumó `overflow-x: hidden` en el body como red de seguridad adicional.
+- Verificado simulando canciones con títulos largos reales contra el server local (con Playwright emulando un Pixel 7): antes, `.song_side` medía 646px en una pantalla de 412px; después, todo queda contenido exactamente en el ancho de pantalla.
+
+**Login**: se agregó el logo de Noiz (ícono + wordmark) arriba del título "Iniciar sesión"/"Crear cuenta", con el mismo estilo que usa el sidebar del dashboard.
+
+---
+
 ## 2026-08-04 (2) — Retoques estéticos y arreglos de la PWA
 
 **Logo**

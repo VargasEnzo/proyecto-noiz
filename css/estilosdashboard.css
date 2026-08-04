@@ -45,6 +45,7 @@ body{
   display: grid;
   place-items: center;
   color: var(--color-text);
+  overflow-x: hidden;
 }
 
 header{
@@ -380,6 +381,10 @@ header{
   font-size: 34px;
   letter-spacing: .5px;
   font-weight: 400;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .now-playing-hero-overlay p{
@@ -986,6 +991,7 @@ header{
     justify-content: space-between;
     grid-column: 1;
     grid-row: 1;
+    min-width: 0;
     padding: 0 16px;
     backdrop-filter: blur(14px);
     background-color: var(--color-panel-bg);
@@ -1063,6 +1069,7 @@ header{
   .song_side{
     grid-column: 1;
     grid-row: 2;
+    min-width: 0;
     padding: 14px;
   }
 
@@ -1078,6 +1085,7 @@ header{
   .master_play{
     grid-column: 1;
     grid-row: 3;
+    min-width: 0;
     padding: 0 12px;
     height: 64px;
   }
