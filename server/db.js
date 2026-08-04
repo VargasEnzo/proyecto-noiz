@@ -2,8 +2,8 @@ const { createClient } = require('@libsql/client');
 const path = require('node:path');
 
 function resolveUrl() {
-    if (process.env.TURSO_DATABASE_URL) return process.env.TURSO_DATABASE_URL;
     if (process.env.DB_PATH === ':memory:') return ':memory:';
+    if (process.env.TURSO_DATABASE_URL) return process.env.TURSO_DATABASE_URL;
     return `file:${process.env.DB_PATH || path.join(__dirname, 'database.sqlite')}`;
 }
 

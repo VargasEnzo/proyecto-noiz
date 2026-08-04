@@ -8,6 +8,21 @@
   display: none;
 }
 
+/* Reproductor de YouTube: se usa para el audio, nunca se muestra.
+   Necesita un tamaño real (no 1x1) para que la API interna de YouTube
+   inicialice bien la comunicacion con el iframe; se oculta con opacidad
+   en vez de con un tamaño microscopico o posicionandolo lejos de la pantalla. */
+#youtube-player-slot{
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
 .fondo {
   background-image: url('../IMAGENES/14.jpg');
   position: fixed;

@@ -12,5 +12,3 @@ export const state = {
     searchDebounceTimer: null,
     currentUser: null,
 };
-
-export const music = new Audio();

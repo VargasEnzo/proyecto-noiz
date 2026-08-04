@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test';
 process.env.DB_PATH = ':memory:';
 process.env.SESSION_SECRET = 'test-secret';
 process.env.ADMIN_EMAIL = 'admin@test.com';
-process.env.JAMENDO_CLIENT_ID = 'test-client-id';
+process.env.YOUTUBE_API_KEY = 'test-api-key';
 process.env.SENDGRID_API_KEY = 'test-sendgrid-key';
 process.env.SENDGRID_FROM_EMAIL = 'test@gmail.com';
 

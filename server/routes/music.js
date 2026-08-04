@@ -1,6 +1,6 @@
 const express = require('express');
 const requireAuthApi = require('../middleware/requireAuthApi');
-const { getPopularTracks, searchTracks, getTracksByTag } = require('../services/jamendo');
+const { getPopularTracks, searchTracks, getTracksByTag } = require('../services/youtube');
 
 const router = express.Router();
 
@@ -11,7 +11,8 @@ router.get('/popular', async (req, res) => {
         const tracks = await getPopularTracks();
         res.json(tracks);
     } catch (err) {
-        res.status(502).json({ error: 'No se pudo conectar con Jamendo.' });
+        console.error(err);
+        res.status(502).json({ error: 'No se pudo conectar con YouTube.' });
     }
 });
 
@@ -25,7 +26,8 @@ router.get('/genre', async (req, res) => {
         const tracks = await getTracksByTag(tag);
         res.json(tracks);
     } catch (err) {
-        res.status(502).json({ error: 'No se pudo conectar con Jamendo.' });
+        console.error(err);
+        res.status(502).json({ error: 'No se pudo conectar con YouTube.' });
     }
 });
 
@@ -39,7 +41,8 @@ router.get('/search', async (req, res) => {
         const tracks = await searchTracks(query);
         res.json(tracks);
     } catch (err) {
-        res.status(502).json({ error: 'No se pudo conectar con Jamendo.' });
+        console.error(err);
+        res.status(502).json({ error: 'No se pudo conectar con YouTube.' });
     }
 });
 

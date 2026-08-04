@@ -66,7 +66,7 @@ export function highlightActiveSong() {
     songList.querySelectorAll('.song-item').forEach((item) => {
         item.classList.toggle(
             'active',
-            !!state.currentSong && Number(item.dataset.songId) === state.currentSong.id
+            !!state.currentSong && item.dataset.songId === String(state.currentSong.id)
         );
     });
 }

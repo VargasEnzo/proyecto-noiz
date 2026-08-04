@@ -72,7 +72,7 @@ router.post('/:id/songs', async (req, res) => {
     await db.run(
         'INSERT INTO playlist_songs (playlist_id, track_id, title, artist, cover_url, audio_url, duration) VALUES (?, ?, ?, ?, ?, ?, ?)',
         playlist.id,
-        Number(id),
+        String(id),
         displayName,
         artist,
         cover,
@@ -90,9 +90,9 @@ router.delete('/:id/songs/:trackId', async (req, res) => {
     }
 
     await db.run(
-        'DELETE FROM playlist_songs WHERE playlist_id = ? AND track_id = ?',
+        'DELETE FROM playlist_songs WHERE playlist_id = ? AND CAST(track_id AS TEXT) = ?',
         playlist.id,
-        Number(req.params.trackId)
+        req.params.trackId
     );
     res.json({ ok: true });
 });
