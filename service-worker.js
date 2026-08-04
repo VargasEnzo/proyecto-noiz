@@ -1,4 +1,4 @@
-const CACHE_NAME = 'noiz-shell-v1';
+const CACHE_NAME = 'noiz-shell-v2';
 
 const SHELL_FILES = [
     '/html/login.html',
@@ -7,10 +7,12 @@ const SHELL_FILES = [
     '/css/estiloslogin.css',
     '/css/estilosdashboard.css',
     '/js/login.js',
-    '/js/dashboard.js',
+    '/js/dashboard/main.js',
     '/js/pwa.js',
     '/manifest.json',
-    '/IMAGENES/logo-noiz.png',
+    '/IMAGENES/logo-noiz-icon.png',
+    '/IMAGENES/logo-noiz-app-icon.png',
+    '/IMAGENES/logo-noiz-app-icon-192.png',
     '/IMAGENES/14.jpg',
     '/IMAGENES/15.jpg',
 ];

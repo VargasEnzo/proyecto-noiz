@@ -12,10 +12,21 @@ Un archivo JSON que le dice al navegador cómo se llama la app, qué ícono usar
 
 Un script que el navegador ejecuta en segundo plano, por fuera de cualquier pestaña en particular, y que puede interceptar los requests de red de la app. Noiz lo usa para dos cosas:
 
-1. **Precachear el "shell"** de la app (login, dashboard, sus CSS/JS, el logo) al instalarse, así la próxima vez que se abra carga más rápido.
+1. **Precachear el "shell"** de la app (login, dashboard, sus CSS/JS, los íconos) al instalarse, así la próxima vez que se abra carga más rápido.
 2. **Estrategia network-first**: en cada request, intenta primero traer la versión más nueva del servidor; solo si no hay conexión, usa la copia guardada en caché. Es la estrategia opuesta a "cache-first" — prioriza que el usuario siempre vea contenido actualizado, y usa el caché solo como respaldo sin internet.
 
-> **Nota para cuando se toque este archivo**: la lista `SHELL_FILES` en `service-worker.js` referencia `/js/dashboard.js`, pero ese archivo no existe — el dashboard hoy vive en `js/dashboard/main.js` (ver [02-frontend.md](02-frontend.md)). Como `cache.addAll` falla entero si un solo archivo de la lista da 404, esto puede estar rompiendo la instalación del service worker sin ningún error visible en la UI. Está anotado como pendiente de arreglar.
+Cada vez que cambia qué se precachea, hay que subir `CACHE_NAME` (por ejemplo `noiz-shell-v2`) — es lo que le indica al navegador que hay una versión nueva del caché y que debe reemplazar la anterior en los dispositivos donde la PWA ya está instalada.
+
+### Los íconos de la PWA
+
+Hay dos assets distintos derivados del logo original (`IMAGENES/logo-noiz.png`), para dos usos distintos:
+
+- **`logo-noiz-icon.png`**: la "N" recortada al borde real (el archivo original tenía un margen transparente enorme alrededor, ocupando solo ~42% del canvas — por eso se veía chica y perdía nitidez a tamaño ícono). Se usa inline en el sidebar del dashboard y el header del admin, con fondo transparente — el CSS la pinta de blanco con `filter: brightness(0) invert(1)`.
+- **`logo-noiz-app-icon.png`** / **`logo-noiz-app-icon-192.png`**: la "N" en blanco ya renderizada sobre un fondo sólido oscuro (`#14172a`, el mismo color que `background_color` en `manifest.json`). Se usa para los íconos del manifest (incluyendo variantes `purpose: "maskable"`, para que Android no la recorte mal al aplicarle su máscara de ícono adaptativo), el favicon, y el `apple-touch-icon` — en esos contextos no conviene depender de transparencia (iOS/Android la rellenan con un color que no controlamos), así que el fondo va horneado directamente en el PNG.
+
+### El truco de `100dvh`
+
+Los contenedores de pantalla completa (`body` en login/dashboard/admin, el `header` del dashboard en mobile, el cajón de navegación) declaran `height: 100vh` seguido de `height: 100dvh` — la segunda línea pisa a la primera en los navegadores que la soportan, y sirve de respaldo en los que no. La diferencia importa en mobile: `100vh` no tiene en cuenta que la barra de direcciones del navegador aparece/desaparece dinámicamente (cambiando cuánto se ve realmente en pantalla), lo que puede cortar o desplazar contenido. `100dvh` ("dynamic viewport height") sí se ajusta a ese cambio en tiempo real.
 
 ## Deploy: Render
 

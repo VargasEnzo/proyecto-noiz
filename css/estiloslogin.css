@@ -9,7 +9,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* centra verticalmente */  
+  height: 100vh; /* centra verticalmente */
+  height: 100dvh;
   font-family: 'Staatliches', sans-serif;
   text-align: center;
 }
@@ -21,6 +22,7 @@ body {
   left: -20px;
   width: calc(100vw + 40px);
   height: calc(100vh + 40px);
+  height: calc(100dvh + 40px);
   background-size: cover;
   background-position: center;
   filter: blur(10px);

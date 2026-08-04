@@ -15,6 +15,7 @@
   left: -20px;
   width: calc(100vw + 40px);
   height: calc(100vh + 40px);
+  height: calc(100dvh + 40px);
   background-size: cover;
   background-position: center;
   filter: blur(10px);
@@ -24,6 +25,7 @@
 body{
   font-family: 'Poppins', sans-serif;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   padding: 40px 20px;
@@ -59,7 +61,7 @@ body{
 
 .admin-logo span{
   font-size: 14px;
-  color: var(--color-accent-soft);
+  color: var(--color-text);
   font-family: 'Poppins', sans-serif;
   letter-spacing: normal;
 }

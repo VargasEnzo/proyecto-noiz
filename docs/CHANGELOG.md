@@ -4,6 +4,22 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-04 (2) — Retoques estéticos y arreglos de la PWA
+
+**Logo**
+- El logo (`IMAGENES/logo-noiz.png`) tenía un margen transparente enorme alrededor de la "N" (el dibujo real ocupaba solo ~42% del canvas), por eso se veía chico y perdía nitidez a tamaño ícono. Se generaron dos variantes nuevas a partir del original: `logo-noiz-icon.png` (recortada al borde real, para el sidebar del dashboard y el header del admin) y `logo-noiz-app-icon.png`/`logo-noiz-app-icon-192.png` (la N en blanco sobre fondo sólido oscuro, para el ícono de la PWA/favicon/apple-touch-icon, donde la transparencia no funciona bien).
+
+**Panel de admin**
+- El texto "Admin" junto al logo era casi ilegible (`color: var(--color-accent-soft)`, un lila muy claro que se perdía contra el fondo). Ahora usa `var(--color-text)`.
+
+**PWA / mobile**
+- El manifest apuntaba al logo viejo (N negra sobre transparente) combinado con un `background_color` oscuro — eso hacía que el splash screen al abrir la app en el celular se viera como "fondo oscuro con letra negra", casi invisible. Ahora usa el ícono nuevo (N blanca sobre fondo oscuro), y se agregaron variantes `maskable` para que Android no la recorte mal con su máscara de ícono adaptativo.
+- Se reemplazó `100vh` por `100dvh` (con `100vh` como respaldo) en los contenedores de pantalla completa de dashboard, login y admin. `100vh` no tiene en cuenta que la barra de direcciones del navegador mobile aparece/desaparece y cambia el alto visible real — eso podía cortar o desplazar contenido en el celular.
+- Se corrigió el bug ya detectado antes en `service-worker.js`: precacheaba `/js/dashboard.js`, que no existe (el dashboard vive en `js/dashboard/main.js`). Como `cache.addAll` falla entero si un solo archivo de la lista da 404, esto podía romper la instalación de la PWA en silencio. Se corrigieron las rutas y se subió la versión del caché (`noiz-shell-v2`) para que los usuarios que ya la tenían instalada reciban la actualización.
+- El cajón de navegación mobile (`.menu_side`) tenía un fondo semitransparente pensado para el efecto "vidrio" del sidebar de escritorio; en el celular, al deslizarse por encima del resto de la interfaz, dejaba traslucir contenido de atrás. Se le subió la opacidad para uso mobile.
+
+---
+
 ## 2026-08-04 — Seguridad, panel de admin y primera documentación
 
 **Seguridad**

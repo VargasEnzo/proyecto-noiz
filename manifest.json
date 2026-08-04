@@ -10,14 +10,28 @@
   "theme_color": "#4A4AFF",
   "icons": [
     {
-      "src": "/IMAGENES/logo-noiz.png",
+      "src": "/IMAGENES/logo-noiz-app-icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/IMAGENES/logo-noiz.png",
+      "src": "/IMAGENES/logo-noiz-app-icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/IMAGENES/logo-noiz-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/IMAGENES/logo-noiz-app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
