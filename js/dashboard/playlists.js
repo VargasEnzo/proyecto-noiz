@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, closeMobileMenu } from './utils.js';
 import { createPlaylist, deletePlaylistRequest, addSongToPlaylistRequest, searchTracksRequest } from './api.js';
 import { renderSongList } from './songlist.js';
 
@@ -26,6 +26,7 @@ const navItems = {
 export function setActiveNav(view) {
     state.currentView = view;
     Object.entries(navItems).forEach(([key, el]) => el.classList.toggle('active', key === view));
+    closeMobileMenu();
 }
 
 function hideBrowseChips() {

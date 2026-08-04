@@ -4,6 +4,14 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-04 (4) — El cajón de navegación mobile no se cerraba solo
+
+En mobile, elegir algo del menú hamburguesa (por ejemplo "Artistas") navegaba a esa vista pero el cajón se quedaba abierto tapando la pantalla. Causa: el cajón se abre/cierra con un checkbox oculto (`#mobile-menu-toggle`, truco CSS-only vía `:checked`), y nada lo destildaba al elegir una opción. Se agregó `closeMobileMenu()` en `js/dashboard/utils.js`, llamada desde `setActiveNav()` (`js/dashboard/playlists.js`) — el punto por el que pasan todas las navegaciones del sidebar (Inicio, Explorar, playlists, y Géneros/Radio/Artistas/Albums vía `resetBrowseView`), así quedó arreglado en un solo lugar en vez de repetirlo en cada handler.
+
+**Auth de git**: se reemplazó el flujo de pegar un Personal Access Token en cada push por una clave SSH dedicada (`~/.ssh/id_ed25519_github`, cargada en la cuenta de GitHub del usuario). El remote de este repo ahora es `git@github.com:VargasEnzo/proyecto-noiz.git`.
+
+---
+
 ## 2026-08-04 (3) — Arreglar el desfasaje real en mobile y logo en el login
 
 Los arreglos de mobile de la entrada anterior (el "2") no alcanzaron: probando ya desplegado en un celular Android, la interfaz seguía desfasándose (texto cortado, contenido más ancho que la pantalla). El motivo era otro, y solo aparecía con datos reales (no se veía en local porque ahí no había canciones cargadas):

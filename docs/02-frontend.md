@@ -41,7 +41,7 @@ Esta es la parte más grande de la app, y la única que está modularizada con *
 - **[discover.js](../js/dashboard/discover.js)**: la columna derecha ("Recomendado" / "Top Artistas") — se calcula en el navegador a partir de las canciones populares que ya se cargaron, no pide nada nuevo al servidor.
 - **[browse.js](../js/dashboard/browse.js)**: las secciones de "Géneros", "Radio", "Artistas" y "Albums" del sidebar.
 - **[profile.js](../js/dashboard/profile.js)**: el modal de "Mi perfil" y la lógica que muestra/esconde el link de "Administración" según si sos admin.
-- **[utils.js](../js/dashboard/utils.js)**: por ahora, solo `escapeHtml` — convierte texto de usuario en HTML seguro para insertar con `innerHTML` (ver [04-seguridad.md](04-seguridad.md), sección XSS).
+- **[utils.js](../js/dashboard/utils.js)**: helpers chicos compartidos — `escapeHtml` (convierte texto de usuario en HTML seguro para insertar con `innerHTML`, ver [04-seguridad.md](04-seguridad.md) sección XSS) y `closeMobileMenu` (cierra el cajón de navegación mobile; ver más abajo).
 - **[main.js](../js/dashboard/main.js)**: el punto de entrada. Se ejecuta al cargar `dashboard.html`, importa todos los módulos de arriba (lo que hace que se "activen" — cada uno registra sus propios event listeners al importarse), y llama a `init()` para cargar el usuario actual, las playlists y las canciones populares.
 
 ### Por qué el reproductor no usa `<audio>`
@@ -53,3 +53,9 @@ Esto significa que reproducir música en Noiz técnicamente reproduce un video d
 ### Cuidado con los títulos largos en el layout mobile
 
 Los títulos de YouTube pueden ser bastante largos ("Artista - Canción (Video Oficial) ft. Fulano, Mengano..."). Si algún elemento nuevo muestra un título de canción sin limitarle el ancho (`overflow: hidden` + `text-overflow: ellipsis` + `white-space: nowrap`, o un `-webkit-line-clamp` para multilínea), en mobile puede terminar **agrandando toda la columna del grid del dashboard** (`.mobile-topbar`, `.song_side` y todo lo que comparte esa fila/columna en `header`), no solo desbordar ese elemento puntual — es el clásico bug de "blowout" de CSS Grid, donde un track `1fr` no se achica por debajo del contenido mínimo de sus items. Ya pasó una vez con el título de la card "Sonando ahora" (ver [CHANGELOG.md](CHANGELOG.md)). Los items del grid mobile tienen `min-width: 0` como red de seguridad general, pero cualquier texto de longitud variable nuevo debería truncarse explícitamente de todos modos.
+
+### El cajón de navegación mobile es un truco CSS-only (checkbox hack)
+
+En mobile, el sidebar se convierte en un cajón deslizable (`.menu_side`) que se abre con el botón de hamburguesa. No hay JS manejando ese estado abierto/cerrado: es el ["checkbox hack"](https://css-tricks.com/the-checkbox-hack/) — un `<input type="checkbox" id="mobile-menu-toggle">` oculto, y CSS que usa el selector `:checked` para mostrar/ocultar el cajón (ver `dashboard.html` y las reglas `#mobile-menu-toggle:checked ~ .menu_side` en `estilosdashboard.css`). El botón de hamburguesa y el botón de cerrar son `<label for="mobile-menu-toggle">`, que tildan/destildan el checkbox al hacer click sin necesitar JS.
+
+La consecuencia práctica: **elegir algo del menú no cierra el cajón solo**, porque nada tilda/destilda el checkbox al navegar — hay que hacerlo a mano desde JS. Por eso existe `closeMobileMenu()` en `utils.js`, llamada desde `setActiveNav()` en `playlists.js`. Si se agrega alguna otra forma de navegar desde el sidebar en el futuro, hay que acordarse de llamarla ahí también (o, mejor, encauzarla a través de `setActiveNav`).
