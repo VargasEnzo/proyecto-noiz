@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const session = require('express-session');
+const helmet = require('helmet');
 const path = require('node:path');
 
 const authRoutes = require('./routes/auth');
@@ -16,21 +17,47 @@ const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PROJECT_ROOT = path.join(__dirname, '..');
 
+if (IS_PRODUCTION && !process.env.SESSION_SECRET) {
+    throw new Error('Falta la variable de entorno SESSION_SECRET en producción.');
+}
+const SESSION_SECRET = process.env.SESSION_SECRET || 'noiz-dev-secret';
+
 if (IS_PRODUCTION) {
     app.set('trust proxy', 1);
 }
+
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", 'https://www.youtube.com', 'https://s.ytimg.com'],
+                styleSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://fonts.googleapis.com',
+                    'https://cdn.jsdelivr.net',
+                    'https://cdnjs.cloudflare.com',
+                ],
+                imgSrc: ["'self'", 'data:', 'https:'],
+                frameSrc: ["'self'", 'https://www.youtube.com'],
+                connectSrc: ["'self'"],
+            },
+        },
+    })
+);
 
 app.use((req, res, next) => {
     db.ready.then(() => next()).catch(next);
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '100kb' }));
 app.use(
     session({
-        secret: process.env.SESSION_SECRET || 'noiz-dev-secret',
+        secret: SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: IS_PRODUCTION },
+        cookie: { secure: IS_PRODUCTION, sameSite: 'lax' },
     })
 );
 

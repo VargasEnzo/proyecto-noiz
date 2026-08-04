@@ -5,7 +5,7 @@
 }
 
 .hidden{
-  display: none;
+  display: none !important;
 }
 
 .fondo {
@@ -104,6 +104,16 @@ body{
 .admin-stat-label{
   font-size: 13px;
   color: var(--color-text-muted);
+}
+
+.admin-stat-note{
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+#stat-youtube-quota{
+  font-size: 24px;
 }
 
 .admin-panel{

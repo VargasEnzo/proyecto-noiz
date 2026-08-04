@@ -1,8 +1,11 @@
 const express = require('express');
 const db = require('../db');
 const requireAuthApi = require('../middleware/requireAuthApi');
+const createLimiter = require('../middleware/apiLimiter');
 
 const router = express.Router();
+
+const writeLimiter = createLimiter({ limit: 60 });
 
 router.use(requireAuthApi);
 
@@ -36,7 +39,7 @@ router.get('/', async (req, res) => {
     res.json(conCanciones);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', writeLimiter, async (req, res) => {
     const { nombre } = req.body;
     if (!nombre) {
         return res.status(400).json({ error: 'La playlist necesita un nombre.' });
@@ -47,7 +50,7 @@ router.post('/', async (req, res) => {
     res.json({ id: Number(info.lastInsertRowid), user_id: req.session.userId, nombre, songs: [] });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', writeLimiter, async (req, res) => {
     const playlist = await getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
@@ -58,7 +61,7 @@ router.delete('/:id', async (req, res) => {
     res.json({ ok: true });
 });
 
-router.post('/:id/songs', async (req, res) => {
+router.post('/:id/songs', writeLimiter, async (req, res) => {
     const playlist = await getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });
@@ -83,7 +86,7 @@ router.post('/:id/songs', async (req, res) => {
     res.json({ ok: true });
 });
 
-router.delete('/:id/songs/:trackId', async (req, res) => {
+router.delete('/:id/songs/:trackId', writeLimiter, async (req, res) => {
     const playlist = await getOwnedPlaylist(req.params.id, req.session.userId);
     if (!playlist) {
         return res.status(404).json({ error: 'Playlist no encontrada.' });

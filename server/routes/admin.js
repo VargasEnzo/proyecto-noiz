@@ -1,8 +1,11 @@
 const express = require('express');
 const db = require('../db');
 const requireAdmin = require('../middleware/requireAdmin');
+const { getYoutubeUsageToday } = require('../services/quota');
 
 const router = express.Router();
+
+const YOUTUBE_DAILY_QUOTA = Number(process.env.YOUTUBE_DAILY_QUOTA) || 10000;
 
 router.use(requireAdmin);
 
@@ -10,6 +13,16 @@ router.get('/stats', async (req, res) => {
     const { totalUsuarios } = await db.get('SELECT COUNT(*) AS totalUsuarios FROM users');
     const { totalPlaylists } = await db.get('SELECT COUNT(*) AS totalPlaylists FROM playlists');
     res.json({ totalUsuarios, totalPlaylists });
+});
+
+router.get('/youtube-quota', async (req, res) => {
+    const { date, unitsUsed } = await getYoutubeUsageToday();
+    res.json({
+        date,
+        unitsUsed,
+        dailyLimit: YOUTUBE_DAILY_QUOTA,
+        unitsRemaining: Math.max(0, YOUTUBE_DAILY_QUOTA - unitsUsed),
+    });
 });
 
 router.get('/users', async (req, res) => {

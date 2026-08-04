@@ -1,25 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const rateLimit = require('express-rate-limit');
 const crypto = require('node:crypto');
 const db = require('../db');
 const requireAuthApi = require('../middleware/requireAuthApi');
+const createLimiter = require('../middleware/apiLimiter');
 const { sendPasswordResetEmail } = require('../services/mailer');
 
 const router = express.Router();
 
-const rawAuthLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+const authLimiter = createLimiter({
     limit: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
     message: { error: 'Demasiados intentos. Probá de nuevo en unos minutos.' },
 });
-
-function authLimiter(req, res, next) {
-    if (process.env.NODE_ENV === 'test') return next();
-    return rawAuthLimiter(req, res, next);
-}
 
 router.post('/register', authLimiter, async (req, res) => {
     const { nombre, apellido, email, password, repetirPassword } = req.body;

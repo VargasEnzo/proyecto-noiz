@@ -119,7 +119,7 @@ body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .form-error {

@@ -1,5 +1,6 @@
 const statUsuarios = document.getElementById('stat-usuarios');
 const statPlaylists = document.getElementById('stat-playlists');
+const statYoutubeQuota = document.getElementById('stat-youtube-quota');
 const usersBody = document.getElementById('admin-users-body');
 
 function escapeHtml(str) {
@@ -14,6 +15,12 @@ function escapeHtml(str) {
 async function fetchStats() {
     const response = await fetch('/api/admin/stats');
     if (!response.ok) return { totalUsuarios: 0, totalPlaylists: 0 };
+    return response.json();
+}
+
+async function fetchYoutubeQuota() {
+    const response = await fetch('/api/admin/youtube-quota');
+    if (!response.ok) return { unitsUsed: 0, dailyLimit: 0 };
     return response.json();
 }
 
@@ -132,9 +139,10 @@ function renderUsers(users) {
 }
 
 async function init() {
-    const [stats, users] = await Promise.all([fetchStats(), fetchUsers()]);
+    const [stats, users, quota] = await Promise.all([fetchStats(), fetchUsers(), fetchYoutubeQuota()]);
     statUsuarios.textContent = stats.totalUsuarios;
     statPlaylists.textContent = stats.totalPlaylists;
+    statYoutubeQuota.textContent = `${quota.unitsUsed} / ${quota.dailyLimit}`;
     renderUsers(users);
 }
 

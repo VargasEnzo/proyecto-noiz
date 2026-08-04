@@ -1,10 +1,14 @@
 const express = require('express');
 const requireAuthApi = require('../middleware/requireAuthApi');
+const createLimiter = require('../middleware/apiLimiter');
 const { getPopularTracks, searchTracks, getTracksByTag } = require('../services/youtube');
 
 const router = express.Router();
 
+const musicLimiter = createLimiter({ limit: 60 });
+
 router.use(requireAuthApi);
+router.use(musicLimiter);
 
 router.get('/popular', async (req, res) => {
     try {

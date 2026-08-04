@@ -5,7 +5,7 @@
 }
 
 .hidden{
-  display: none;
+  display: none !important;
 }
 
 /* Reproductor de YouTube: se usa para el audio, nunca se muestra.

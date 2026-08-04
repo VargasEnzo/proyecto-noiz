@@ -69,6 +69,13 @@ db.ready = (async () => {
             duration TEXT NOT NULL
         )
     `);
+
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS youtube_quota_usage (
+            date TEXT PRIMARY KEY,
+            units_used INTEGER NOT NULL DEFAULT 0
+        )
+    `);
 })();
 
 module.exports = db;

@@ -1,5 +1,10 @@
+const { recordYoutubeUsage } = require('./quota');
+
 const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const MUSIC_CATEGORY_ID = '10';
+
+// Costos documentados de la YouTube Data API v3 (units por llamada).
+const QUOTA_COSTS = { videos: 1, search: 100 };
 
 let popularCache = null;
 let popularCacheAt = 0;
@@ -38,6 +43,7 @@ async function fetchJson(path, params) {
     if (!response.ok) {
         throw new Error(body.error?.message || 'Error de YouTube');
     }
+    recordYoutubeUsage(QUOTA_COSTS[path]).catch((err) => console.error('No se pudo registrar el uso de cuota de YouTube', err));
     return body;
 }
 
