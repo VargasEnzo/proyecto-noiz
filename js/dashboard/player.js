@@ -17,7 +17,24 @@ const heroCover = document.getElementById('hero-cover'),
     mpPlayBtn = document.getElementById('mp-play'),
     mpShuffleBtn = document.getElementById('mp-shuffle'),
     mpVolumeIcon = document.getElementById('mp-volume-icon'),
-    mpVolumeSlider = document.getElementById('mp-volume-slider');
+    mpVolumeSlider = document.getElementById('mp-volume-slider'),
+    nowPlayingOpenBtn = document.getElementById('now-playing-open-btn'),
+    nowPlayingFullscreen = document.getElementById('nowplaying-fullscreen'),
+    nowPlayingBg = document.getElementById('nowplaying-bg'),
+    nowPlayingCollapseBtn = document.getElementById('nowplaying-collapse-btn'),
+    fsCover = document.getElementById('fs-cover'),
+    fsTitle = document.getElementById('fs-title'),
+    fsArtist = document.getElementById('fs-artist'),
+    fsCurrentTime = document.getElementById('fs-current-time'),
+    fsDuration = document.getElementById('fs-duration'),
+    fsProgress = document.getElementById('fs-progress'),
+    fsProgressBar = document.getElementById('fs-progress-bar'),
+    fsPrevBtn = document.getElementById('fs-prev'),
+    fsNextBtn = document.getElementById('fs-next'),
+    fsPlayBtn = document.getElementById('fs-play'),
+    fsShuffleBtn = document.getElementById('fs-shuffle'),
+    fsVolumeIcon = document.getElementById('fs-volume-icon'),
+    fsVolumeSlider = document.getElementById('fs-volume-slider');
 
 // --- Reproductor de YouTube, cargado oculto (ver #youtube-player en dashboard.html) ---
 
@@ -98,6 +115,7 @@ export function togglePlay() {
 export function playMusic() {
     state.isPlaying = true;
     mpPlayBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
+    fsPlayBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
     highlightActiveSong();
 
     if (!isPlayerReady) {
@@ -117,6 +135,7 @@ export function playMusic() {
 export function pauseMusic() {
     state.isPlaying = false;
     mpPlayBtn.classList.replace('bi-pause-fill', 'bi-play-fill');
+    fsPlayBtn.classList.replace('bi-pause-fill', 'bi-play-fill');
     pendingAutoplay = false;
     stopProgressLoop();
     if (isPlayerReady) ytPlayer.pauseVideo();
@@ -132,11 +151,19 @@ export function loadMusic(song) {
     heroTitle.textContent = song.displayName;
     heroArtist.textContent = song.artist;
 
+    fsTitle.textContent = song.displayName;
+    fsArtist.textContent = song.artist;
+    fsCover.src = song.cover;
+    nowPlayingBg.style.backgroundImage = `url("${song.cover}")`;
+
     renderDiscoverSide();
 
     mpCurrentTime.textContent = '0:00';
     mpDuration.textContent = '0:00';
     mpProgress.style.width = '0%';
+    fsCurrentTime.textContent = '0:00';
+    fsDuration.textContent = '0:00';
+    fsProgress.style.width = '0%';
 
     // No se carga en YouTube todavia: se guarda como pendiente y playMusic()
     // la carga y reproduce en un solo paso (loadVideoById), sin la carrera
@@ -164,6 +191,7 @@ export function changeMusic(direction) {
 export function setShuffle(enabled) {
     state.isShuffle = enabled;
     mpShuffleBtn.classList.toggle('active', enabled);
+    fsShuffleBtn.classList.toggle('active', enabled);
 }
 
 function toggleShuffle() {
@@ -180,6 +208,8 @@ function toggleMute() {
     }
     mpVolumeIcon.classList.toggle('bi-volume-up-fill', !isMuted);
     mpVolumeIcon.classList.toggle('bi-volume-mute-fill', isMuted);
+    fsVolumeIcon.classList.toggle('bi-volume-up-fill', !isMuted);
+    fsVolumeIcon.classList.toggle('bi-volume-mute-fill', isMuted);
 }
 
 function updateProgressBar() {
@@ -188,17 +218,43 @@ function updateProgressBar() {
     const currentTime = ytPlayer.getCurrentTime();
     const progressPercent = (currentTime / duration) * 100;
     mpProgress.style.width = `${progressPercent || 0}%`;
+    fsProgress.style.width = `${progressPercent || 0}%`;
 
     const formatTime = (time) => String(Math.floor(time)).padStart(2, '0');
-    mpDuration.textContent = `${formatTime(duration / 60) || 0}:${formatTime(duration % 60) || '00'}`;
-    mpCurrentTime.textContent = `${formatTime(currentTime / 60)}:${formatTime(currentTime % 60)}`;
+    const durationText = `${formatTime(duration / 60) || 0}:${formatTime(duration % 60) || '00'}`;
+    const currentTimeText = `${formatTime(currentTime / 60)}:${formatTime(currentTime % 60)}`;
+    mpDuration.textContent = durationText;
+    mpCurrentTime.textContent = currentTimeText;
+    fsDuration.textContent = durationText;
+    fsCurrentTime.textContent = currentTimeText;
 }
 
 function setProgressBar(e) {
     if (!isPlayerReady) return;
-    const width = mpProgressBar.clientWidth;
+    const width = e.currentTarget.clientWidth;
     const clickX = e.offsetX;
     ytPlayer.seekTo((clickX / width) * ytPlayer.getDuration(), true);
+}
+
+function setVolume(value) {
+    mpVolumeSlider.value = value;
+    fsVolumeSlider.value = value;
+    if (!isPlayerReady) return;
+    ytPlayer.setVolume(Number(value) * 100);
+    if (isMuted) {
+        isMuted = false;
+        ytPlayer.unMute();
+        mpVolumeIcon.classList.replace('bi-volume-mute-fill', 'bi-volume-up-fill');
+        fsVolumeIcon.classList.replace('bi-volume-mute-fill', 'bi-volume-up-fill');
+    }
+}
+
+function openNowPlaying() {
+    nowPlayingFullscreen.classList.remove('hidden');
+}
+
+function closeNowPlaying() {
+    nowPlayingFullscreen.classList.add('hidden');
 }
 
 mpPlayBtn.addEventListener('click', togglePlay);
@@ -206,13 +262,16 @@ mpPrevBtn.addEventListener('click', () => changeMusic(-1));
 mpNextBtn.addEventListener('click', () => changeMusic(1));
 mpShuffleBtn.addEventListener('click', toggleShuffle);
 mpVolumeIcon.addEventListener('click', toggleMute);
-mpVolumeSlider.addEventListener('input', () => {
-    if (!isPlayerReady) return;
-    ytPlayer.setVolume(Number(mpVolumeSlider.value) * 100);
-    if (isMuted) {
-        isMuted = false;
-        ytPlayer.unMute();
-        mpVolumeIcon.classList.replace('bi-volume-mute-fill', 'bi-volume-up-fill');
-    }
-});
+mpVolumeSlider.addEventListener('input', () => setVolume(mpVolumeSlider.value));
 mpProgressBar.addEventListener('click', setProgressBar);
+
+fsPlayBtn.addEventListener('click', togglePlay);
+fsPrevBtn.addEventListener('click', () => changeMusic(-1));
+fsNextBtn.addEventListener('click', () => changeMusic(1));
+fsShuffleBtn.addEventListener('click', toggleShuffle);
+fsVolumeIcon.addEventListener('click', toggleMute);
+fsVolumeSlider.addEventListener('input', () => setVolume(fsVolumeSlider.value));
+fsProgressBar.addEventListener('click', setProgressBar);
+
+nowPlayingOpenBtn.addEventListener('click', openNowPlaying);
+nowPlayingCollapseBtn.addEventListener('click', closeNowPlaying);

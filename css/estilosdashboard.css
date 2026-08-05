@@ -612,6 +612,7 @@ header{
   display: flex;
   align-items: center;
   width: 25%;
+  cursor: pointer;
 }
 
 .now-playing img{
@@ -749,6 +750,190 @@ header{
   height: 4px;
   border-radius: 4px;
   background-color: var(--color-accent-soft);
+}
+
+/* --- Reproductor a pantalla completa --- */
+
+.nowplaying-fullscreen{
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  color: var(--color-text);
+}
+
+.nowplaying-bg{
+  position: absolute;
+  inset: -40px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(22px) brightness(.8);
+  transform: scale(1.1);
+}
+
+.nowplaying-scrim{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .1) 0%, rgba(0, 0, 0, .28) 100%);
+}
+
+.nowplaying-content{
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 40px;
+}
+
+.nowplaying-collapse-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  transition: .2s linear;
+  flex-shrink: 0;
+}
+
+.nowplaying-collapse-btn:hover{
+  color: var(--color-text);
+  background-color: rgba(255, 255, 255, .08);
+}
+
+.nowplaying-card{
+  backdrop-filter: blur(24px) saturate(160%);
+  background-color: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 40px;
+}
+
+.nowplaying-cover-wrap{
+  width: min(280px, 40vw);
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+}
+
+.nowplaying-cover{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nowplaying-info{
+  max-width: min(500px, 90vw);
+  text-align: center;
+}
+
+.nowplaying-info h2{
+  font-family: 'Staatliches', sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  letter-spacing: .5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nowplaying-info p{
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.nowplaying-progress-wrap{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(380px, 80vw);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.nowplaying-progress-wrap .mp-progress-bar{
+  flex: 1;
+}
+
+.nowplaying-controls-row{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.nowplaying-controls{
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nowplaying-controls i{
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: .2s linear;
+}
+
+.nowplaying-controls i:hover{
+  color: var(--color-accent-soft);
+}
+
+.nowplaying-controls i.active{
+  color: var(--color-accent-soft);
+}
+
+.nowplaying-play-button{
+  font-size: 22px !important;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-text);
+  color: #0a0714 !important;
+}
+
+.nowplaying-play-button:hover{
+  color: #0a0714 !important;
+  transform: scale(1.05);
+}
+
+.nowplaying-volume-wrap{
+  width: 120px;
+}
+
+.nowplaying-brand{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Staatliches', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  opacity: .7;
+}
+
+.nowplaying-brand img{
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
 }
 
 /* --- Modal "Nueva playlist" --- */
@@ -1213,6 +1398,34 @@ header{
   .admin-stats{
     flex-direction: column;
   }
+
+  .nowplaying-content{
+    flex-direction: column;
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .nowplaying-collapse-btn{
+    align-self: flex-start;
+  }
+
+  .nowplaying-card{
+    max-width: min(420px, 92vw);
+    padding: 24px 20px;
+    gap: 18px;
+  }
+
+  .nowplaying-cover-wrap{
+    width: min(260px, 65vw);
+  }
+
+  .nowplaying-controls-row{
+    gap: 18px;
+  }
+
+  .nowplaying-volume-wrap{
+    width: 90px;
+  }
 }
 
 /* ======================================================= */
@@ -1236,6 +1449,23 @@ header{
 
   .now-playing-hero-overlay h2{
     font-size: 20px;
+  }
+
+  .nowplaying-card{
+    padding: 20px 16px;
+    gap: 14px;
+  }
+
+  .nowplaying-cover-wrap{
+    width: min(220px, 62vw);
+  }
+
+  .nowplaying-info h2{
+    font-size: 22px;
+  }
+
+  .nowplaying-controls-row{
+    gap: 14px;
   }
 
   .song-item img{

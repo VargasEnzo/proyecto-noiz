@@ -157,7 +157,7 @@
     </div>
 
     <div class="master_play">
-      <div class="now-playing">
+      <div class="now-playing" id="now-playing-open-btn" title="Abrir reproductor">
         <img src="" id="mp-cover" alt="">
         <div class="now-playing-info">
           <h4 id="mp-title"></h4>
@@ -185,6 +185,55 @@
       </div>
     </div>
   </header>
+
+  <div class="nowplaying-fullscreen hidden" id="nowplaying-fullscreen">
+    <div class="nowplaying-bg" id="nowplaying-bg"></div>
+    <div class="nowplaying-scrim"></div>
+
+    <div class="nowplaying-content">
+      <button type="button" class="nowplaying-collapse-btn" id="nowplaying-collapse-btn" title="Volver al dashboard">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <div class="nowplaying-card">
+        <div class="nowplaying-cover-wrap">
+          <img src="" id="fs-cover" alt="" class="nowplaying-cover">
+        </div>
+
+        <div class="nowplaying-info">
+          <h2 id="fs-title"></h2>
+          <p id="fs-artist"></p>
+        </div>
+
+        <div class="nowplaying-progress-wrap">
+          <span id="fs-current-time">0:00</span>
+          <div class="mp-progress-bar" id="fs-progress-bar">
+            <div class="mp-progress" id="fs-progress"></div>
+          </div>
+          <span id="fs-duration">0:00</span>
+        </div>
+
+        <div class="nowplaying-controls-row">
+          <div class="nowplaying-controls">
+            <i class="bi bi-shuffle" id="fs-shuffle" title="Aleatorio"></i>
+            <i class="bi bi-skip-start-fill" id="fs-prev" title="Anterior"></i>
+            <i class="bi bi-play-fill nowplaying-play-button" id="fs-play" title="Play"></i>
+            <i class="bi bi-skip-end-fill" id="fs-next" title="Siguiente"></i>
+          </div>
+
+          <div class="nowplaying-volume-wrap mp-volume-wrap">
+            <i class="bi bi-volume-up-fill" id="fs-volume-icon" title="Silenciar"></i>
+            <input type="range" id="fs-volume-slider" min="0" max="1" step="0.01" value="1">
+          </div>
+        </div>
+
+        <div class="nowplaying-brand">
+          <img src="../IMAGENES/logo-noiz-icon.png" alt="" class="sidebar-logo-icon">
+          <span>Noiz</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="../js/pwa.js"></script>
   <script type="module" src="../js/dashboard/main.js"></script>
