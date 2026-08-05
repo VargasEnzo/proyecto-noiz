@@ -8,6 +8,11 @@
   display: none !important;
 }
 
+/* Solo visible en el layout mobile (ver el media query mas abajo) */
+.mobile-only-section{
+  display: none;
+}
+
 /* Reproductor de YouTube: se usa para el audio, nunca se muestra.
    Necesita un tamaño real (no 1x1) para que la API interna de YouTube
    inicialice bien la comunicacion con el iframe; se oculta con opacidad
@@ -62,7 +67,8 @@ header{
 .menu_side,
 .song_side,
 .discover_side,
-.master_play{
+.master_play,
+#admin-view{
   backdrop-filter: blur(14px);
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-glass-border);
@@ -89,6 +95,14 @@ header{
 
 .discover_side{
   grid-column: 3;
+  grid-row: 1;
+  padding: 20px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+#admin-view{
+  grid-column: 2 / 4;
   grid-row: 1;
   padding: 20px;
   overflow-y: auto;
@@ -558,58 +572,18 @@ header{
   margin-top: 25px;
 }
 
-.recommended-card{
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-radius: var(--radius-sm);
-  background-color: var(--color-glass-bg-strong);
-  cursor: pointer;
-  transition: .2s linear;
-}
-
-.recommended-card:hover{
-  background-color: rgba(255, 255, 255, 0.16);
-}
-
-.recommended-card img{
-  width: 45px;
-  height: 45px;
-  border-radius: 6px;
-  object-fit: cover;
-}
-
-.recommended-card-info{
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-
-.recommended-card-title{
-  font-size: 13px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.recommended-card-artist{
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.recommended-card .bi-play-circle-fill{
-  font-size: 22px;
-  color: var(--color-accent-soft);
-}
-
 .top-artist-row{
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 4px;
+  padding: 8px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: .2s linear;
+}
+
+.top-artist-row:hover{
+  background-color: var(--color-glass-bg-strong);
 }
 
 .top-artist-row .bi-person-circle{
@@ -960,6 +934,141 @@ header{
   color: var(--color-text-muted);
 }
 
+/* --- Panel de administración --- */
+
+.admin-topbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.admin-back-link{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: .2s linear;
+}
+
+.admin-back-link:hover{
+  color: var(--color-accent-soft);
+}
+
+.admin-stats{
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-stat-card{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background-color: var(--color-glass-bg-strong);
+  border-radius: var(--radius-lg);
+}
+
+.admin-stat-value{
+  font-family: 'Staatliches', sans-serif;
+  font-size: 32px;
+}
+
+.admin-stat-label{
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.admin-stat-note{
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+#stat-youtube-quota{
+  font-size: 24px;
+}
+
+.admin-panel{
+  padding: 20px;
+  background-color: var(--color-glass-bg-strong);
+  border-radius: var(--radius-lg);
+}
+
+.admin-panel h3{
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.admin-table-wrap{
+  overflow-x: auto;
+}
+
+.admin-table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th{
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-glass-border);
+}
+
+.admin-table td{
+  padding: 12px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-glass-border);
+}
+
+.admin-table tr:last-child td{
+  border-bottom: none;
+}
+
+.admin-plan-select{
+  padding: 6px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-panel-bg);
+  color: var(--color-text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-actions-cell{
+  display: flex;
+  gap: 14px;
+}
+
+.admin-actions-cell i{
+  font-size: 16px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: .2s linear;
+}
+
+.admin-actions-cell i:hover{
+  color: var(--color-accent-soft);
+}
+
+.admin-delete-btn:hover{
+  color: var(--color-danger) !important;
+}
+
 /* ======================================================= */
 /* --- Responsive: celulares y tablets chicas (<=768px) --- */
 /* ======================================================= */
@@ -982,6 +1091,16 @@ header{
 
   .discover_side{
     display: none;
+  }
+
+  /* En mobile el panel derecho (discover_side) esta oculto, asi que
+     "Recomendado" se muestra dentro del cajon hamburguesa en su lugar. */
+  .sidebar-section-header.mobile-only-section{
+    display: flex;
+  }
+
+  .playlist-list.mobile-only-section{
+    display: block;
   }
 
   /* Barra superior compacta (logo + hamburguesa), reemplaza a la sidebar */
@@ -1066,7 +1185,8 @@ header{
     color: var(--color-text);
   }
 
-  .song_side{
+  .song_side,
+  #admin-view{
     grid-column: 1;
     grid-row: 2;
     min-width: 0;
@@ -1088,6 +1208,10 @@ header{
     min-width: 0;
     padding: 0 12px;
     height: 64px;
+  }
+
+  .admin-stats{
+    flex-direction: column;
   }
 }
 

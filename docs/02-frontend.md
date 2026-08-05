@@ -11,8 +11,7 @@ Cada página HTML es un punto de entrada independiente — no hay "router" del l
 | [login.html](../html/login.html) | Iniciar sesión o registrarse (son dos `<form>` en la misma página, se togglean con JS). | No |
 | [forgot-password.html](../html/forgot-password.html) | Pedir el mail de recuperación de contraseña. | No |
 | [reset-password.html](../html/reset-password.html) | Poner una contraseña nueva usando el token del mail. | No |
-| [dashboard.html](../html/dashboard.html) | La app en sí: sidebar, lista de canciones, reproductor. | Sí |
-| [admin.html](../html/admin.html) | Panel de administración (estadísticas, gestión de usuarios). | Sí, y además tenés que ser el admin (ver [04-seguridad.md](04-seguridad.md)) |
+| [dashboard.html](../html/dashboard.html) | La app en sí: sidebar, lista de canciones, reproductor, y el panel de administración (una vista más adentro de esta misma página, ver más abajo). | Sí |
 | [index.html](../html/index.html) | El reproductor original de tutorial. No se usa desde ningún lado hoy — ver [01-historia.md](01-historia.md). | No |
 
 El servidor decide qué páginas requieren sesión, no el navegador — si entrás a `/html/dashboard.html` sin haber iniciado sesión, el servidor te redirige a `/html/login.html` antes de mandarte el HTML (ver `requireAuth` en [03-backend.md](03-backend.md)).
@@ -21,13 +20,13 @@ El servidor decide qué páginas requieren sesión, no el navegador — si entr�
 
 - [variables.css](../css/variables.css): variables de diseño compartidas (`--color-accent`, `--radius-lg`, etc.), usando [CSS custom properties](https://developer.mozilla.org/es/docs/Web/CSS/Using_CSS_custom_properties) (`--nombre: valor`, se usan con `var(--nombre)`). Cambiar un color acá lo cambia en toda la app.
 - [estilos.css](../css/estilos.css): estilos del reproductor original de tutorial (`index.html`).
-- [estiloslogin.css](../css/estiloslogin.css), [estilosdashboard.css](../css/estilosdashboard.css), [estilosadmin.css](../css/estilosadmin.css): un archivo de estilos por página principal, sin un sistema de componentes compartido más allá de `variables.css`.
+- [estiloslogin.css](../css/estiloslogin.css), [estilosdashboard.css](../css/estilosdashboard.css): un archivo de estilos por página principal, sin un sistema de componentes compartido más allá de `variables.css`. El panel de admin ya no tiene su propio CSS aparte (`estilosadmin.css` se borró) — sus reglas viven en `estilosdashboard.css`, porque ahora es una vista más del dashboard.
 
 Todos definen una clase utilitaria `.hidden { display: none !important }` para esconder elementos por JS (togglear `classList`). Usa `!important` a propósito: al ser una clase utilitaria pensada para usarse sobre cualquier elemento, necesita ganarle siempre a los estilos propios de ese elemento (por ejemplo, un `<h4>` de la sidebar que normalmente es `display: flex`).
 
 ## El JavaScript de páginas sueltas
 
-`login.js`, `forgot-password.js`, `reset-password.js`, `index.js` y `admin.js` (en [js/](../js/)) son scripts únicos, uno por página, sin módulos ES ni build step — se cargan con `<script src="...">` directo en el HTML. Cada uno hace básicamente lo mismo: escuchar el submit de un formulario, mandar un `fetch` al backend, y mostrar el resultado o el error.
+`login.js`, `forgot-password.js`, `reset-password.js` e `index.js` (en [js/](../js/)) son scripts únicos, uno por página, sin módulos ES ni build step — se cargan con `<script src="...">` directo en el HTML. Cada uno hace básicamente lo mismo: escuchar el submit de un formulario, mandar un `fetch` al backend, y mostrar el resultado o el error. (`admin.js` vivía acá también, pero se migró a `js/dashboard/admin.js` — ver más abajo.)
 
 ## El dashboard (`js/dashboard/`)
 
@@ -38,8 +37,9 @@ Esta es la parte más grande de la app, y la única que está modularizada con *
 - **[player.js](../js/dashboard/player.js)**: el reproductor de música en sí. Ver la sección siguiente, es la pieza más particular de todo el frontend.
 - **[songlist.js](../js/dashboard/songlist.js)**: dibuja la lista de canciones del panel central y maneja los clicks (reproducir, agregar/quitar de una playlist).
 - **[playlists.js](../js/dashboard/playlists.js)**: la sidebar de playlists, el modal de "nueva playlist", y el menú flotante de "agregar a esta playlist".
-- **[discover.js](../js/dashboard/discover.js)**: la columna derecha ("Recomendado" / "Top Artistas") — se calcula en el navegador a partir de las canciones populares que ya se cargaron, no pide nada nuevo al servidor.
-- **[browse.js](../js/dashboard/browse.js)**: las secciones de "Géneros", "Radio", "Artistas" y "Albums" del sidebar.
+- **[discover.js](../js/dashboard/discover.js)**: la sección "Recomendado" — los 6 artistas con más canciones dentro del pool de populares que ya se cargó (no pide nada nuevo al servidor, ni trackea historial de escucha real). Se renderiza dos veces, una en la columna derecha (desktop) y otra dentro del cajón hamburguesa (mobile) — ver la sección de abajo.
+- **[browse.js](../js/dashboard/browse.js)**: las secciones de "Géneros", "Radio", "Artistas" y "Albums" del sidebar. También expone `showArtistSongs(nombre)`, que usa `discover.js` para llevar directo a un artista elegido desde "Recomendado".
+- **[admin.js](../js/dashboard/admin.js)**: el panel de administración, migrado acá desde el viejo `js/admin.js` (página aparte) — ver la sección de abajo.
 - **[profile.js](../js/dashboard/profile.js)**: el modal de "Mi perfil" y la lógica que muestra/esconde el link de "Administración" según si sos admin.
 - **[utils.js](../js/dashboard/utils.js)**: helpers chicos compartidos — `escapeHtml` (convierte texto de usuario en HTML seguro para insertar con `innerHTML`, ver [04-seguridad.md](04-seguridad.md) sección XSS) y `closeMobileMenu` (cierra el cajón de navegación mobile; ver más abajo).
 - **[main.js](../js/dashboard/main.js)**: el punto de entrada. Se ejecuta al cargar `dashboard.html`, importa todos los módulos de arriba (lo que hace que se "activen" — cada uno registra sus propios event listeners al importarse), y llama a `init()` para cargar el usuario actual, las playlists y las canciones populares.
@@ -50,6 +50,16 @@ Un dato que sorprende la primera vez: no hay ningún `<audio src="...">` reprodu
 
 Esto significa que reproducir música en Noiz técnicamente reproduce un video de YouTube (oculto) — importante tenerlo en cuenta si en algún momento se evalúa la parte legal/de negocio del proyecto (ver la nota en [README.md](README.md)).
 
+### El reproductor es persistente porque todo el sidebar es una sola página
+
+`dashboard.html` es una sola página: elegir "Inicio", "Explorar", "Géneros", "Radio", "Artistas", "Albums" o una playlist nunca navega a otro HTML, solo cambia con JS qué se muestra en el panel central (`song_side`) y qué chips aparecen — el patrón `resetBrowseView()`/`showChips()`/`renderSongList()` en `browse.js`. Como el iframe oculto de YouTube (`#youtube-player`) vive en el `<header>` de `dashboard.html` y nunca se destruye durante esos cambios, la música sigue sonando sin importar qué parte de la app estés mirando.
+
+"Administración" seguía esa misma lógica hasta hace poco, pero era la única excepción: hacía `window.location.href = 'admin.html'`, una navegación real a una página HTML totalmente aparte — eso destruía el iframe (y con él, la reproducción) cada vez que entrabas al panel de admin, y no la recuperaba al volver. Se resolvió convirtiendo Admin en una vista más del dashboard, igual que Géneros/Artistas: el markup vive ahora en `dashboard.html` dentro de `#admin-view` (oculto por default), `js/dashboard/admin.js` reemplaza al viejo `js/admin.js`, y `setActiveNav()` (en `playlists.js`) es quien muestra/esconde `#admin-view` vs. `.song_side`/`.discover_side` según la vista activa — el mismo punto único por el que ya pasaban todas las demás navegaciones del sidebar. La ruta vieja `/html/admin.html` en el servidor ahora solo redirige a `/html/dashboard.html`, por si quedó algún link o bookmark viejo.
+
+Importante: esto **no cambia quién puede ver datos de administración**. La protección real siempre estuvo (y sigue estando) en `requireAdmin` sobre cada endpoint `/api/admin/*` (ver [04-seguridad.md](04-seguridad.md)) — mostrar el HTML del panel no expone nada, porque sin esa autorización todos los `fetch` de `admin.js` devuelven 403 igual.
+
+Como `dashboard.html` es la misma página en desktop y en mobile/PWA (el layout mobile es CSS responsive sobre el mismo HTML, no una página distinta), este arreglo aplica en el celular también sin nada adicional.
+
 ### Cuidado con los títulos largos en el layout mobile
 
 Los títulos de YouTube pueden ser bastante largos ("Artista - Canción (Video Oficial) ft. Fulano, Mengano..."). Si algún elemento nuevo muestra un título de canción sin limitarle el ancho (`overflow: hidden` + `text-overflow: ellipsis` + `white-space: nowrap`, o un `-webkit-line-clamp` para multilínea), en mobile puede terminar **agrandando toda la columna del grid del dashboard** (`.mobile-topbar`, `.song_side` y todo lo que comparte esa fila/columna en `header`), no solo desbordar ese elemento puntual — es el clásico bug de "blowout" de CSS Grid, donde un track `1fr` no se achica por debajo del contenido mínimo de sus items. Ya pasó una vez con el título de la card "Sonando ahora" (ver [CHANGELOG.md](CHANGELOG.md)). Los items del grid mobile tienen `min-width: 0` como red de seguridad general, pero cualquier texto de longitud variable nuevo debería truncarse explícitamente de todos modos.
@@ -59,3 +69,7 @@ Los títulos de YouTube pueden ser bastante largos ("Artista - Canción (Video O
 En mobile, el sidebar se convierte en un cajón deslizable (`.menu_side`) que se abre con el botón de hamburguesa. No hay JS manejando ese estado abierto/cerrado: es el ["checkbox hack"](https://css-tricks.com/the-checkbox-hack/) — un `<input type="checkbox" id="mobile-menu-toggle">` oculto, y CSS que usa el selector `:checked` para mostrar/ocultar el cajón (ver `dashboard.html` y las reglas `#mobile-menu-toggle:checked ~ .menu_side` en `estilosdashboard.css`). El botón de hamburguesa y el botón de cerrar son `<label for="mobile-menu-toggle">`, que tildan/destildan el checkbox al hacer click sin necesitar JS.
 
 La consecuencia práctica: **elegir algo del menú no cierra el cajón solo**, porque nada tilda/destilda el checkbox al navegar — hay que hacerlo a mano desde JS. Por eso existe `closeMobileMenu()` en `utils.js`, llamada desde `setActiveNav()` en `playlists.js`. Si se agrega alguna otra forma de navegar desde el sidebar en el futuro, hay que acordarse de llamarla ahí también (o, mejor, encauzarla a través de `setActiveNav`).
+
+### "Recomendado" vive en dos lugares distintos según el tamaño de pantalla
+
+En desktop, `.discover_side` (la columna derecha) es visible y ahí se muestra "Recomendado". En mobile esa columna se oculta por completo (`.discover_side{display:none}` en el media query de `estilosdashboard.css`), así que no hay dónde mostrarlo — por eso `dashboard.html` tiene un segundo contenedor para lo mismo (`#mobile-top-artists-list`) dentro del cajón hamburguesa, envuelto en la clase `.mobile-only-section` (`display: none` en desktop, visible solo en el media query `≤768px`). `discover.js` no duplica lógica: la función que arma el HTML de los 6 artistas se llama una vez y escribe el mismo resultado en ambos contenedores, así nunca se desincronizan.

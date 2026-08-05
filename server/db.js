@@ -34,6 +34,26 @@ db.ready = (async () => {
             password_hash TEXT NOT NULL,
             avatar TEXT,
             plan TEXT NOT NULL DEFAULT 'Gratis',
+            email_verified INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    `);
+
+    // Migracion: las cuentas creadas antes de este cambio no tienen esta columna.
+    // Se agrega con DEFAULT 1 para no bloquear cuentas que ya funcionaban.
+    const columns = await db.execute(`PRAGMA table_info(users)`);
+    const yaTieneEmailVerified = columns.rows.some((c) => c.name === 'email_verified');
+    if (!yaTieneEmailVerified) {
+        await db.execute(`ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 1`);
+    }
+
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS email_verifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token_hash TEXT NOT NULL UNIQUE,
+            expires_at TEXT NOT NULL,
+            used INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )
     `);

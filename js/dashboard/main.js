@@ -6,6 +6,7 @@ import { loadMusic } from './player.js';
 import './discover.js';
 import './songlist.js';
 import './browse.js';
+import './admin.js';
 
 const logoutBtn = document.getElementById('logout-btn');
 

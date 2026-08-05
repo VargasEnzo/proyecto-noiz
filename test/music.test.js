@@ -7,6 +7,7 @@ process.env.YOUTUBE_API_KEY = 'test-api-key';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
+const { registerVerifyAndLogin } = require('./helpers');
 const app = require('../server/index');
 
 test('/api/music/genre requiere sesión activa', async () => {
@@ -15,14 +16,7 @@ test('/api/music/genre requiere sesión activa', async () => {
 });
 
 test('/api/music/genre exige el parámetro tag', async () => {
-    const agent = request.agent(app);
-    await agent.post('/api/register').send({
-        nombre: 'Test',
-        apellido: 'User',
-        email: 'genero@test.com',
-        password: 'password123',
-        repetirPassword: 'password123',
-    });
+    const agent = await registerVerifyAndLogin(app, { email: 'genero@test.com' });
 
     const res = await agent.get('/api/music/genre');
     assert.equal(res.status, 400);

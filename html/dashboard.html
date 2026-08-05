@@ -77,6 +77,11 @@
           <i class="bi bi-plus-lg" id="new-playlist-btn" title="Nueva playlist"></i>
         </div>
         <div class="playlist-list" id="playlist-list"></div>
+
+        <div class="sidebar-section-header mobile-only-section">
+          <span>Recomendado</span>
+        </div>
+        <div class="playlist-list mobile-only-section" id="mobile-top-artists-list"></div>
       </nav>
 
       <div class="sidebar-profile">
@@ -106,10 +111,49 @@
 
     <div class="discover_side">
       <h3 class="discover_title">Recomendado</h3>
-      <div id="recommended-card"></div>
-
-      <h3 class="discover_title">Top Artistas</h3>
       <div id="top-artists-list"></div>
+    </div>
+
+    <div class="admin-view hidden" id="admin-view">
+      <div class="admin-topbar">
+        <h3 class="song_side_title">Administración</h3>
+        <button type="button" class="admin-back-link" id="admin-back-btn"><i class="bi bi-arrow-left"></i> Volver</button>
+      </div>
+
+      <div class="admin-stats">
+        <div class="admin-stat-card">
+          <span class="admin-stat-value" id="stat-usuarios">0</span>
+          <span class="admin-stat-label">Usuarios</span>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat-value" id="stat-playlists">0</span>
+          <span class="admin-stat-label">Playlists creadas</span>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat-value" id="stat-youtube-quota">0 / 0</span>
+          <span class="admin-stat-label">Cuota de YouTube usada hoy</span>
+          <span class="admin-stat-note">Estimado propio a partir de las llamadas que hace el server, no es un dato oficial de Google.</span>
+        </div>
+      </div>
+
+      <div class="admin-panel">
+        <h3>Usuarios</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Plan</th>
+                <th>Alta</th>
+                <th>Playlists</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-body"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <div class="master_play">

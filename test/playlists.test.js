@@ -7,17 +7,8 @@ process.env.YOUTUBE_API_KEY = 'test-api-key';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
+const { registerVerifyAndLogin } = require('./helpers');
 const app = require('../server/index');
-
-async function registerAndLogin(agent, email) {
-    await agent.post('/api/register').send({
-        nombre: 'Test',
-        apellido: 'User',
-        email,
-        password: 'password123',
-        repetirPassword: 'password123',
-    });
-}
 
 test('playlists requieren sesión activa', async () => {
     const res = await request(app).get('/api/playlists');
@@ -25,8 +16,7 @@ test('playlists requieren sesión activa', async () => {
 });
 
 test('crear, agregar canción, y borrar playlist', async () => {
-    const agent = request.agent(app);
-    await registerAndLogin(agent, 'dueno@test.com');
+    const agent = await registerVerifyAndLogin(app, { email: 'dueno@test.com' });
 
     const crear = await agent.post('/api/playlists').send({ nombre: 'Mis favoritas' });
     assert.equal(crear.status, 200);
@@ -60,20 +50,17 @@ test('crear, agregar canción, y borrar playlist', async () => {
 });
 
 test('un usuario no puede borrar la playlist de otro', async () => {
-    const dueno = request.agent(app);
-    await registerAndLogin(dueno, 'dueno2@test.com');
+    const dueno = await registerVerifyAndLogin(app, { email: 'dueno2@test.com' });
     const crear = await dueno.post('/api/playlists').send({ nombre: 'Privada' });
     const playlistId = crear.body.id;
 
-    const intruso = request.agent(app);
-    await registerAndLogin(intruso, 'intruso@test.com');
+    const intruso = await registerVerifyAndLogin(app, { email: 'intruso@test.com' });
     const intento = await intruso.delete(`/api/playlists/${playlistId}`);
     assert.equal(intento.status, 404);
 });
 
 test('crear playlist sin nombre devuelve 400', async () => {
-    const agent = request.agent(app);
-    await registerAndLogin(agent, 'sinnombre@test.com');
+    const agent = await registerVerifyAndLogin(app, { email: 'sinnombre@test.com' });
     const res = await agent.post('/api/playlists').send({});
     assert.equal(res.status, 400);
 });

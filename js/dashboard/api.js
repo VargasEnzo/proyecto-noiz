@@ -63,3 +63,41 @@ export async function addSongToPlaylistRequest(playlistId, song) {
 export async function removeSongFromPlaylistRequest(playlistId, songId) {
     await fetch(`/api/playlists/${playlistId}/songs/${songId}`, { method: 'DELETE' });
 }
+
+// --- Admin ---
+
+export async function fetchAdminStats() {
+    const response = await fetch('/api/admin/stats');
+    if (!response.ok) return { totalUsuarios: 0, totalPlaylists: 0 };
+    return response.json();
+}
+
+export async function fetchAdminYoutubeQuota() {
+    const response = await fetch('/api/admin/youtube-quota');
+    if (!response.ok) return { unitsUsed: 0, dailyLimit: 0 };
+    return response.json();
+}
+
+export async function fetchAdminUsers() {
+    const response = await fetch('/api/admin/users');
+    if (!response.ok) return [];
+    return response.json();
+}
+
+export async function fetchAdminUserPlaylists(id) {
+    const response = await fetch(`/api/admin/users/${id}/playlists`);
+    if (!response.ok) return [];
+    return response.json();
+}
+
+export async function updateAdminUserPlan(id, plan) {
+    await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+    });
+}
+
+export async function deleteAdminUserRequest(id) {
+    return fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+}

@@ -24,6 +24,16 @@ Cuando alguien pide "olvidé mi contraseña" (`POST /api/forgot-password`), el s
 3. Manda por mail (vía SendGrid) un link con el token real, que expira en 1 hora.
 4. Responde `{ ok: true }` **siempre**, exista o no ese email en la base — esto es a propósito, para no dejar que alguien use ese endpoint para averiguar qué emails están registrados en Noiz (se llama "no enumerar usuarios", y hay un test específico para esto en `test/password-reset.test.js`).
 
+## Verificación de email
+
+Registrarse (`POST /api/register`) ya no deja la sesión abierta al toque: crea la cuenta con `email_verified = 0` y manda un mail de confirmación. Mismo mecanismo que la recuperación de contraseña de arriba (token random, se guarda el hash SHA-256, link que expira — acá 24 horas en vez de 1), aplicado a un caso distinto:
+
+1. El link del mail pega a `GET /api/verify-email?token=...` (sin sesión, se abre directo desde el cliente de mail) — si el token es válido y no venció, marca `email_verified = 1` y redirige a `/html/login.html?verified=1`.
+2. `POST /api/login` rechaza con `403 { unverified: true }` si la contraseña es correcta pero la cuenta no está verificada — bloquear el login (no solo mostrar un cartel) es lo que hace que la verificación signifique algo: si el registro siguiera dejando usar la app igual, el campo sería decorativo.
+3. `POST /api/resend-verification` reenvía el mail si hace falta (mismo principio de "no enumerar usuarios" que `forgot-password`).
+
+**Nota de migración**: como esto se agregó cuando la tabla `users` ya tenía cuentas reales en producción (Turso), la columna se agrega con `ALTER TABLE ... DEFAULT 1` solo si no existía todavía — así ninguna cuenta previa a este cambio queda bloqueada. El detalle completo de la migración está en `server/db.js` y en la entrada correspondiente de [CHANGELOG.md](CHANGELOG.md).
+
 ## XSS: por qué casi todo pasa por `escapeHtml`
 
 XSS (*Cross-Site Scripting*) es cuando un atacante logra que su propio texto se ejecute como HTML/JavaScript dentro de la página de otro usuario — por ejemplo, si el nombre de una playlist fuera `<img src=x onerror="robar_cookie()">` y la app lo insertara tal cual con `innerHTML`, ese código se ejecutaría en el navegador de cualquiera que vea esa playlist.
@@ -59,10 +69,9 @@ Dos niveles distintos, que conviene no confundir:
 - **Autenticación** ("¿quién sos?"): resuelta por la sesión — `requireAuthApi`/`requireAuth`.
 - **Autorización** ("¿podés hacer esto?"): resuelta caso por caso. Por ejemplo, en `playlists.js`, cada operación sobre una playlist chequea `WHERE id = ? AND user_id = ?` — no alcanza con estar logueado, tenés que ser dueño de ese recurso puntual. Ser admin es un caso especial de autorización: se resuelve comparando el email del usuario logueado contra la variable de entorno `ADMIN_EMAIL` (ver `requireAdmin.js`), no hay un campo "rol" en la base.
 
-Vale aclarar un matiz de esto último: el link "Administración" del sidebar se esconde en el navegador si no sos admin, pero esa es solo la parte visual — **la protección real está del lado del servidor** (tanto en la ruta que sirve `admin.html` como en cada endpoint de `/api/admin/*`, vía `requireAdmin`). Aunque alguien lograra mostrar el link a mano con las herramientas de desarrollador, no podría llamar a ninguno de esos endpoints sin ser el usuario admin de verdad.
+Vale aclarar un matiz de esto último: el link "Administración" del sidebar se esconde en el navegador si no sos admin, pero esa es solo la parte visual — **la protección real está del lado del servidor**, en cada endpoint de `/api/admin/*` vía `requireAdmin`. El panel de admin en sí es una vista más dentro de `dashboard.html` (ver [02-frontend.md](02-frontend.md)), no una página aparte con su propio chequeo de acceso al cargar; eso no debilita nada, porque mostrar ese HTML vacío no expone datos — aunque alguien lograra mostrar el link a mano con las herramientas de desarrollador, no podría llamar a ninguno de esos endpoints sin ser el usuario admin de verdad, y sin datos el panel no muestra nada útil.
 
 ## Lo que todavía falta (a agosto 2026)
 
-- **Verificación de email en el registro**: hoy cualquiera puede crear una cuenta con el email de otra persona, sin confirmarlo.
 - **Tests del panel de admin**: `admin.js` (rutas) no tiene cobertura de tests todavía.
 - Ver también la lista completa de mejoras pendientes que se armó al auditar el proyecto — quedó registrada en la conversación con Claude Code, no en un archivo del repo todavía (podría valer la pena bajarla a un `TODO.md` o a issues de GitHub si el proyecto crece).

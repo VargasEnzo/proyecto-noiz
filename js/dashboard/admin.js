@@ -1,52 +1,20 @@
-const statUsuarios = document.getElementById('stat-usuarios');
-const statPlaylists = document.getElementById('stat-playlists');
-const statYoutubeQuota = document.getElementById('stat-youtube-quota');
-const usersBody = document.getElementById('admin-users-body');
+import { escapeHtml } from './utils.js';
+import {
+    fetchAdminStats,
+    fetchAdminYoutubeQuota,
+    fetchAdminUsers,
+    fetchAdminUserPlaylists,
+    updateAdminUserPlan,
+    deleteAdminUserRequest,
+} from './api.js';
+import { setActiveNav, selectHome } from './playlists.js';
 
-function escapeHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-async function fetchStats() {
-    const response = await fetch('/api/admin/stats');
-    if (!response.ok) return { totalUsuarios: 0, totalPlaylists: 0 };
-    return response.json();
-}
-
-async function fetchYoutubeQuota() {
-    const response = await fetch('/api/admin/youtube-quota');
-    if (!response.ok) return { unitsUsed: 0, dailyLimit: 0 };
-    return response.json();
-}
-
-async function fetchUsers() {
-    const response = await fetch('/api/admin/users');
-    if (!response.ok) return [];
-    return response.json();
-}
-
-async function fetchUserPlaylists(id) {
-    const response = await fetch(`/api/admin/users/${id}/playlists`);
-    if (!response.ok) return [];
-    return response.json();
-}
-
-async function updateUserPlan(id, plan) {
-    await fetch(`/api/admin/users/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
-    });
-}
-
-async function deleteUserRequest(id) {
-    return fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
-}
+const navAdmin = document.getElementById('nav-admin'),
+    adminBackBtn = document.getElementById('admin-back-btn'),
+    statUsuarios = document.getElementById('stat-usuarios'),
+    statPlaylists = document.getElementById('stat-playlists'),
+    statYoutubeQuota = document.getElementById('stat-youtube-quota'),
+    usersBody = document.getElementById('admin-users-body');
 
 function formatFecha(fecha) {
     return new Date(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -73,7 +41,7 @@ document.getElementById('admin-playlists-close-btn').addEventListener('click', (
 });
 
 async function openPlaylistsModal(userId) {
-    const playlists = await fetchUserPlaylists(userId);
+    const playlists = await fetchAdminUserPlaylists(userId);
     const lista = document.getElementById('admin-playlists-list');
     lista.innerHTML = playlists.length
         ? playlists
@@ -113,7 +81,7 @@ function renderUsers(users) {
         .join('');
 
     usersBody.querySelectorAll('.admin-plan-select').forEach((select) => {
-        select.addEventListener('change', () => updateUserPlan(select.dataset.userId, select.value));
+        select.addEventListener('change', () => updateAdminUserPlan(select.dataset.userId, select.value));
     });
 
     usersBody.querySelectorAll('.admin-view-btn').forEach((btn) => {
@@ -126,24 +94,30 @@ function renderUsers(users) {
             const nombre = fila.children[0].textContent;
             if (!confirm(`¿Eliminar la cuenta de ${nombre}? Esta acción no se puede deshacer.`)) return;
 
-            const response = await deleteUserRequest(btn.dataset.userId);
+            const response = await deleteAdminUserRequest(btn.dataset.userId);
             if (!response.ok) {
                 const { error } = await response.json();
                 alert(error || 'No se pudo eliminar la cuenta.');
                 return;
             }
 
-            init();
+            loadAdminData();
         });
     });
 }
 
-async function init() {
-    const [stats, users, quota] = await Promise.all([fetchStats(), fetchUsers(), fetchYoutubeQuota()]);
+async function loadAdminData() {
+    const [stats, users, quota] = await Promise.all([fetchAdminStats(), fetchAdminUsers(), fetchAdminYoutubeQuota()]);
     statUsuarios.textContent = stats.totalUsuarios;
     statPlaylists.textContent = stats.totalPlaylists;
     statYoutubeQuota.textContent = `${quota.unitsUsed} / ${quota.dailyLimit}`;
     renderUsers(users);
 }
 
-init();
+export function selectAdmin() {
+    setActiveNav('admin');
+    loadAdminData();
+}
+
+navAdmin.addEventListener('click', selectAdmin);
+adminBackBtn.addEventListener('click', selectHome);

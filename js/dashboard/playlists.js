@@ -19,13 +19,21 @@ const navItems = {
     radio: document.getElementById('nav-radio'),
     artistas: document.getElementById('nav-artistas'),
     albums: document.getElementById('nav-albums'),
+    admin: navAdmin,
 };
+
+const songSideEl = document.querySelector('.song_side'),
+    discoverSideEl = document.querySelector('.discover_side'),
+    adminViewEl = document.getElementById('admin-view');
 
 // --- Sidebar: navegación (Inicio/Explorar) ---
 
 export function setActiveNav(view) {
     state.currentView = view;
     Object.entries(navItems).forEach(([key, el]) => el.classList.toggle('active', key === view));
+    songSideEl.classList.toggle('hidden', view === 'admin');
+    discoverSideEl.classList.toggle('hidden', view === 'admin');
+    adminViewEl.classList.toggle('hidden', view !== 'admin');
     closeMobileMenu();
 }
 
@@ -55,7 +63,6 @@ export function selectExplorar() {
 
 navHome.addEventListener('click', selectHome);
 navExplorar.addEventListener('click', selectExplorar);
-navAdmin.addEventListener('click', () => (window.location.href = 'admin.html'));
 
 searchInput.addEventListener('input', () => {
     const raw = searchInput.value.trim();

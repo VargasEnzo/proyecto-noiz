@@ -11,7 +11,7 @@ El servidor está escrito en **Node.js** con **Express** (el framework más usad
 3. **`express.json()`**: parsea el body de los requests que llegan como JSON (necesario para leer `req.body` en las rutas POST/PUT).
 4. **`express-session`**: maneja las sesiones de usuario con una cookie (ver [04-seguridad.md](04-seguridad.md)).
 5. Las rutas de la API (`authRoutes`, `playlistsRoutes`, `musicRoutes`, `adminRoutes`), cada una montada bajo su propio prefijo (`/api`, `/api/playlists`, `/api/music`, `/api/admin`).
-6. Las rutas que sirven HTML protegido (`/html/dashboard.html`, `/html/admin.html`), pasando primero por `requireAuth`.
+6. La ruta que sirve el HTML protegido (`/html/dashboard.html`), pasando primero por `requireAuth`. (`/html/admin.html` ya no sirve un archivo — el panel de admin es una vista dentro de `dashboard.html` ahora, ver [02-frontend.md](02-frontend.md); esa ruta vieja solo redirige a `/html/dashboard.html` por compatibilidad con links/bookmarks.)
 7. Los archivos estáticos (`css/`, `js/`, `IMAGENES/`, `MUSICA HTML/`, `html/`) servidos directo con `express.static`.
 8. Un `catch-all` para `/api/*` que no matcheó ninguna ruta → responde 404 en JSON.
 9. Un **error handler global** al final — si cualquier ruta async tira una excepción (por ejemplo, la base de datos falla), termina acá y responde un 500 genérico en vez de tirar el servidor abajo. Express 5 (la versión que usa este proyecto) reenvía automáticamente los errores de funciones `async` a este handler, sin necesitar `try/catch` en cada ruta.
@@ -29,7 +29,7 @@ Aparece un montón en este proyecto, vale la pena explicarlo una vez: un middlew
 
 | Archivo | Prefijo | Qué expone |
 |---|---|---|
-| [auth.js](../server/routes/auth.js) | `/api` | Registro, login, logout, "olvidé mi contraseña", "cambiar contraseña", y `GET/PUT /api/me` (perfil del usuario logueado). |
+| [auth.js](../server/routes/auth.js) | `/api` | Registro (no autentica hasta confirmar el mail), login, logout, verificación de email y su reenvío, "olvidé mi contraseña", "cambiar contraseña", y `GET/PUT /api/me` (perfil del usuario logueado). |
 | [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` — todas piden datos al servicio de YouTube. |
 | [playlists.js](../server/routes/playlists.js) | `/api/playlists` | CRUD de playlists del usuario logueado y de las canciones dentro de cada una. |
 | [admin.js](../server/routes/admin.js) | `/api/admin` | Estadísticas, listado de usuarios, cambiar el plan de un usuario, borrar una cuenta, y la cuota de YouTube usada hoy. Todo detrás de `requireAdmin`. |
@@ -52,7 +52,7 @@ La YouTube Data API no es gratis ni ilimitada: Google le da a cada API key un pr
 - `videos.list` (usada para traer canciones "populares", con caché de 10 minutos en memoria) cuesta **1 unidad**.
 - `search.list` (usada en "Géneros" y en el buscador) cuesta **100 unidades** — mucho más cara.
 
-`server/services/quota.js` registra ese costo cada vez que `youtube.js` hace una llamada exitosa, agrupado por día. El panel de admin (`/html/admin.html`) muestra el total gastado hoy. Es una estimación propia calculada a partir del código de la app — no es un número que venga directamente de Google (Google no expone eso por API), pero es confiable porque nosotros controlamos exactamente qué llamadas se hacen.
+`server/services/quota.js` registra ese costo cada vez que `youtube.js` hace una llamada exitosa, agrupado por día. El panel de admin (una vista dentro de `/html/dashboard.html`, ver [02-frontend.md](02-frontend.md)) muestra el total gastado hoy. Es una estimación propia calculada a partir del código de la app — no es un número que venga directamente de Google (Google no expone eso por API), pero es confiable porque nosotros controlamos exactamente qué llamadas se hacen.
 
 ## La base de datos (`server/db.js`)
 
@@ -63,8 +63,10 @@ Se usa **`@libsql/client`**, la librería cliente de [Turso](https://turso.tech)
 
 `db.js` no usa un ORM (una librería que traduce objetos de JavaScript a filas de base de datos, tipo Prisma o Sequelize) — las consultas son SQL crudo, con tres funciones de ayuda (`db.get`, `db.all`, `db.run`) para no repetir el boilerplate de `db.execute({ sql, args })` en cada ruta. Las tablas se crean con `CREATE TABLE IF NOT EXISTS` al arrancar el servidor — no hay un sistema de migraciones (una herramienta que versiona los cambios de esquema paso a paso); si el esquema cambia, hay que agregar el `ALTER TABLE` a mano.
 
-Las tablas actuales: `users`, `password_resets`, `playlists`, `playlist_songs`, y `youtube_quota_usage`.
+Las tablas actuales: `users`, `email_verifications`, `password_resets`, `playlists`, `playlist_songs`, y `youtube_quota_usage`.
 
 ## Los tests (`test/`)
 
-Usan el test runner nativo de Node (`node --test`, sin Jest ni Mocha) y [supertest](https://github.com/ladjs/supertest) para simular requests HTTP contra la app sin tener que levantar un servidor real. Corren contra una base de datos SQLite **en memoria** (`DB_PATH=':memory:'`), así cada corrida arranca limpia y no toca `database.sqlite`. Cubren registro, login, recuperación de contraseña, y CRUD de playlists (incluyendo que un usuario no pueda tocar las playlists de otro). No cubren todavía el panel de admin ni los endpoints de búsqueda/populares de música.
+Usan el test runner nativo de Node (`node --test`, sin Jest ni Mocha) y [supertest](https://github.com/ladjs/supertest) para simular requests HTTP contra la app sin tener que levantar un servidor real. Corren contra una base de datos SQLite **en memoria** (`DB_PATH=':memory:'`), así cada corrida arranca limpia y no toca `database.sqlite`. Cubren registro (incluida la verificación de email), login, recuperación de contraseña, y CRUD de playlists (incluyendo que un usuario no pueda tocar las playlists de otro). No cubren todavía el panel de admin ni los endpoints de búsqueda/populares de música.
+
+Como registrarse ya no autentica automáticamente (hay que confirmar el mail primero), cualquier test que necesite un usuario logueado pasa por [test/helpers.js](../test/helpers.js): mockea `fetch` hacia `api.sendgrid.com` (igual que ya hacía `password-reset.test.js`), y expone `registerAndVerify`/`registerVerifyAndLogin`, que registran, capturan el token del mail "enviado" (mockeado) y confirman la cuenta antes de loguear — así los tests de `playlists.test.js` y `music.test.js` no repiten esa lógica cada uno por su lado.

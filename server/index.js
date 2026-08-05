@@ -70,13 +70,9 @@ app.get('/', (req, res) => res.redirect('/html/login.html'));
 app.get('/html/dashboard.html', requireAuth, (req, res) => {
     res.sendFile(path.join(PROJECT_ROOT, 'html', 'dashboard.html'));
 });
-app.get('/html/admin.html', requireAuth, async (req, res) => {
-    const user = await db.get('SELECT email FROM users WHERE id = ?', req.session.userId);
-    if (!user || user.email !== process.env.ADMIN_EMAIL) {
-        return res.redirect('/html/dashboard.html');
-    }
-    res.sendFile(path.join(PROJECT_ROOT, 'html', 'admin.html'));
-});
+// El panel de admin ahora es una vista más dentro de dashboard.html (ver js/dashboard/admin.js),
+// no una página aparte. Este redirect es solo para links/bookmarks viejos.
+app.get('/html/admin.html', (req, res) => res.redirect('/html/dashboard.html'));
 
 app.use('/css', express.static(path.join(PROJECT_ROOT, 'css')));
 app.use('/js', express.static(path.join(PROJECT_ROOT, 'js')));

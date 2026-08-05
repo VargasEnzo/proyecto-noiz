@@ -61,16 +61,29 @@ function selectGeneros() {
     });
 }
 
+function artistasList() {
+    return [...new Set(state.homeSongs.map((s) => s.artist))].map((nombre) => ({ label: nombre, nombre }));
+}
+
 function selectArtistas() {
     resetBrowseView('artistas', 'Artistas');
-    const artistas = [...new Set(state.homeSongs.map((s) => s.artist))].map((nombre) => ({
-        label: nombre,
-        nombre,
-    }));
-    showChips(artistas, (artista) => {
+    showChips(artistasList(), (artista) => {
         songSideTitle.textContent = `Artista: ${artista.nombre}`;
         renderSongList(state.homeSongs.filter((s) => s.artist === artista.nombre));
     });
+}
+
+// Se usa desde el widget "Recomendado": lleva directo a la vista Artistas
+// con un artista ya elegido, en vez de tener que abrir el chip a mano.
+export function showArtistSongs(nombre) {
+    selectArtistas();
+    songSideTitle.textContent = `Artista: ${nombre}`;
+    renderSongList(state.homeSongs.filter((s) => s.artist === nombre));
+
+    const chips = artistasList();
+    const chipIndex = chips.findIndex((a) => a.nombre === nombre);
+    const chipBtn = chipIndex !== -1 && browseChips.querySelector(`[data-index="${chipIndex}"]`);
+    if (chipBtn) chipBtn.classList.add('active');
 }
 
 function selectAlbums() {

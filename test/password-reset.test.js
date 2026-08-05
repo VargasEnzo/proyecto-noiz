@@ -9,48 +9,29 @@ process.env.SENDGRID_FROM_EMAIL = 'test@gmail.com';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
-
-let lastEmailSent = null;
-const originalFetch = global.fetch;
-global.fetch = async (url, options) => {
-    if (String(url).startsWith('https://api.sendgrid.com')) {
-        const body = JSON.parse(options.body);
-        lastEmailSent = {
-            to: body.personalizations[0].to[0].email,
-            html: body.content[0].value,
-        };
-        return { ok: true, text: async () => '' };
-    }
-    return originalFetch(url, options);
-};
+const { getLastEmail, extractToken, registerAndVerify } = require('./helpers');
 
 const app = require('../server/index');
 
 test('forgot-password responde ok incluso si el email no existe (no enumerar usuarios)', async () => {
-    lastEmailSent = null;
+    await request(app).post('/api/forgot-password').send({ email: 'noexiste@test.com' });
+    const before = getLastEmail();
+
     const res = await request(app).post('/api/forgot-password').send({ email: 'noexiste@test.com' });
     assert.equal(res.status, 200);
-    assert.equal(lastEmailSent, null);
+    assert.equal(getLastEmail(), before);
 });
 
 test('forgot-password envía el email y reset-password cambia la contraseña', async () => {
-    await request(app).post('/api/register').send({
-        nombre: 'Reset',
-        apellido: 'User',
-        email: 'reset@test.com',
-        password: 'password123',
-        repetirPassword: 'password123',
-    });
+    await registerAndVerify(app, { nombre: 'Reset', apellido: 'User', email: 'reset@test.com' });
 
-    lastEmailSent = null;
     const forgot = await request(app).post('/api/forgot-password').send({ email: 'reset@test.com' });
     assert.equal(forgot.status, 200);
-    assert.ok(lastEmailSent);
+    const lastEmailSent = getLastEmail();
     assert.equal(lastEmailSent.to, 'reset@test.com');
 
-    const match = lastEmailSent.html.match(/token=([a-f0-9]+)/);
-    assert.ok(match, 'el email debería incluir un link con token');
-    const token = match[1];
+    const token = extractToken(lastEmailSent.html);
+    assert.ok(token, 'el email debería incluir un link con token');
 
     const passwordCorta = await request(app)
         .post('/api/reset-password')
