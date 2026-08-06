@@ -591,19 +591,34 @@ header{
   color: var(--color-text-muted);
 }
 
+.recommended-track-cover{
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .top-artist-info{
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .top-artist-name{
   font-size: 13px;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .top-artist-count{
   font-size: 11px;
   color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- Mini-player (master_play) --- */
@@ -1221,6 +1236,46 @@ header{
 
 .admin-table tr:last-child td{
   border-bottom: none;
+}
+
+.admin-status{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.admin-status-dot{
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--color-text-muted);
+}
+
+.admin-status-online{
+  color: var(--color-online);
+}
+
+.admin-status-online .admin-status-dot{
+  background-color: var(--color-online);
+  box-shadow: 0 0 0 rgba(74, 222, 128, .6);
+  animation: admin-status-pulse 1.6s infinite;
+}
+
+.admin-status-offline{
+  color: var(--color-text-muted);
+}
+
+@keyframes admin-status-pulse{
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, .6);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(74, 222, 128, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
 }
 
 .admin-plan-select{

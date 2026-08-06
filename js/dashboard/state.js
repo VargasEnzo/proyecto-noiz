@@ -11,4 +11,5 @@ export const state = {
     isShuffle: false,
     searchDebounceTimer: null,
     currentUser: null,
+    recommendedTracks: [], // "Recomendado" personalizado (playlists/búsquedas); vacío = usar el fallback de top artistas
 };

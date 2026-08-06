@@ -4,6 +4,28 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-06 — Estado online en el panel de admin + Recomendado personalizado
+
+Dos pedidos del usuario, con una decisión de arquitectura para cada uno (quedaron registradas antes de tocar código, ver el resto de esta entrada).
+
+**Estado online**: heartbeat + polling, no WebSockets — Render free tier duerme el server por inactividad, y mantener sockets abiertos no encaja ahí.
+- `server/services/presence.js` (nuevo): un `Map<userId, timestamp>` **en memoria**, no en la base — es un estado efímero (quién está conectado ahora), no algo que tenga sentido persistir entre reinicios del server.
+- El dashboard manda un heartbeat (`POST /api/heartbeat`) cada 20s mientras está abierto (`js/dashboard/main.js`), sin pausarse en pestañas en segundo plano — la música sigue sonando ahí (iframe oculto de YouTube), así que seguir contando como conectado es lo correcto.
+- El panel de admin muestra una columna "Estado" (punto verde con animación de latido + "Conectado", o gris + "Desconectado"), con polling propio cada 15s mientras se está mirando esa vista (`js/dashboard/admin.js`) — sin necesidad de un `clearInterval` al salir: el callback simplemente no hace nada si `state.currentView !== 'admin'`.
+- Verificado con dos sesiones de Playwright en paralelo: un usuario con el heartbeat activo aparece "Conectado" en el panel del admin, y pasa a "Desconectado" ~45s después de cerrar esa pestaña (umbral configurable en `presence.js`).
+
+**"Recomendado" personalizado**: antes mostraba los 6 artistas más repetidos dentro del pool de canciones "populares" — nada que ver con el usuario en particular. Ahora se arma a partir de sus playlists y sus búsquedas recientes.
+- **Por qué Last.fm y no Spotify**: Spotify deprecó justo los endpoints que servirían acá (`audio-features`, `related-artists`, `recommendations`) para cualquier app creada después de noviembre 2024 — no son una opción real hoy. Last.fm sigue teniendo `artist.getsimilar` gratis y sin esa restricción (`server/services/lastfm.js`, nuevo).
+- Tabla nueva `search_history` (`server/db.js`): se guarda una fila por cada búsqueda (`GET /api/music/search`), podada a las últimas 30 por usuario.
+- `server/services/recommendations.js` (nuevo): junta artistas "semilla" (los de las playlists del usuario + los resueltos desde sus últimas búsquedas vía `artist.search` de Last.fm), les pide artistas parecidos, rankea por cuántas semillas distintas los sugirieron, y les busca una canción real a los primeros 6 con `youtube.searchTracks()` (función que ya existía, reusada tal cual). Si el usuario no tiene ninguna semilla todavía (cuenta nueva) devuelve `[]` sin romper nada.
+- **Cacheado 30 min en memoria por usuario**: armar esto de cero puede gastar ~600 unidades de cuota de YouTube (hasta 6 búsquedas × 101 unidades cada una, ver [03-backend.md](03-backend.md)) — no es algo que se pueda recalcular en cada carga del dashboard sin cachear.
+- `js/dashboard/discover.js`: al arrancar el dashboard se sigue mostrando de entrada el fallback de siempre (top artistas del pool de populares, sin bloquear la carga) y en paralelo se pide `GET /api/music/recommendations`; si vuelve con datos, reemplaza el contenido. Como ahora son canciones reales (no solo nombres de artista), cada fila muestra portada + título + artista y al clickear reproduce esa canción directo, en vez de navegar a la vista "Artistas" como hacía el fallback. Mismo patrón dual que ya tenía la sección (se renderiza tanto en `#top-artists-list`, desktop, como en `#mobile-top-artists-list`, dentro del cajón hamburguesa) — y como los títulos de YouTube pueden ser largos, se les agregó truncado (`text-overflow: ellipsis`) para no repetir el bug de "blowout" de CSS Grid que ya habíamos pisado una vez con el título del hero.
+- Verificado sin una API key real de Last.fm (todavía no se cargó en `.env`): con un artista semilla en una playlist de prueba, `GET /api/music/recommendations` degrada con gracia — loguea el error de Last.fm y devuelve `200 []` en vez de romper — así que el resto de la app sigue funcionando aunque falte la key. Falta la verificación con datos reales una vez que se cargue `LASTFM_API_KEY`.
+
+**Pendiente**: cargar `LASTFM_API_KEY` (se consigue gratis en last.fm/api/account/create) en `.env` local y en las variables de entorno de Render — sin eso, "Recomendado" se queda mostrando el fallback de siempre.
+
+---
+
 ## 2026-08-04 (7) — Reproductor a pantalla completa
 
 Se agregó una vista de "reproduciendo ahora" a pantalla completa (estilo Spotify). Se abre haciendo click en la info de la canción dentro de la barra inferior (`master_play`).

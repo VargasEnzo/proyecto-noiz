@@ -5,6 +5,7 @@ const db = require('../db');
 const requireAuthApi = require('../middleware/requireAuthApi');
 const createLimiter = require('../middleware/apiLimiter');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/mailer');
+const { markOnline } = require('../services/presence');
 
 const router = express.Router();
 
@@ -180,6 +181,11 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     await db.run('UPDATE users SET password_hash = ? WHERE id = ?', passwordHash, reset.user_id);
     await db.run('UPDATE password_resets SET used = 1 WHERE id = ?', reset.id);
 
+    res.json({ ok: true });
+});
+
+router.post('/heartbeat', requireAuthApi, (req, res) => {
+    markOnline(req.session.userId);
     res.json({ ok: true });
 });
 

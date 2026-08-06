@@ -96,6 +96,15 @@ db.ready = (async () => {
             units_used INTEGER NOT NULL DEFAULT 0
         )
     `);
+
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS search_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            query TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    `);
 })();
 
 module.exports = db;

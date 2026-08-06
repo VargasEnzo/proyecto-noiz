@@ -29,10 +29,10 @@ Aparece un montón en este proyecto, vale la pena explicarlo una vez: un middlew
 
 | Archivo | Prefijo | Qué expone |
 |---|---|---|
-| [auth.js](../server/routes/auth.js) | `/api` | Registro (no autentica hasta confirmar el mail), login, logout, verificación de email y su reenvío, "olvidé mi contraseña", "cambiar contraseña", y `GET/PUT /api/me` (perfil del usuario logueado). |
-| [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` — todas piden datos al servicio de YouTube. |
+| [auth.js](../server/routes/auth.js) | `/api` | Registro (no autentica hasta confirmar el mail), login, logout, verificación de email y su reenvío, "olvidé mi contraseña", "cambiar contraseña", `GET/PUT /api/me` (perfil del usuario logueado), y `POST /api/heartbeat` (le avisa al server que el usuario sigue conectado — ver la sección de presencia más abajo). |
+| [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` (piden datos al servicio de YouTube) y `/recommendations` (recomendaciones personalizadas — ver más abajo). |
 | [playlists.js](../server/routes/playlists.js) | `/api/playlists` | CRUD de playlists del usuario logueado y de las canciones dentro de cada una. |
-| [admin.js](../server/routes/admin.js) | `/api/admin` | Estadísticas, listado de usuarios, cambiar el plan de un usuario, borrar una cuenta, y la cuota de YouTube usada hoy. Todo detrás de `requireAdmin`. |
+| [admin.js](../server/routes/admin.js) | `/api/admin` | Estadísticas, listado de usuarios (con su estado online/offline), cambiar el plan de un usuario, borrar una cuenta, y la cuota de YouTube usada hoy. Todo detrás de `requireAdmin`. |
 
 Un detalle que se repite en `playlists.js`: cada ruta que toca una playlist específica primero busca `SELECT * FROM playlists WHERE id = ? AND user_id = ?` — es decir, no alcanza con que la playlist exista, tiene que ser **del usuario que hizo el request**. Así un usuario no puede borrar ni ver las playlists de otro con solo adivinar un ID.
 
@@ -43,7 +43,27 @@ Un "servicio" acá es simplemente un módulo que sabe hablar con algo externo, p
 - **[youtube.js](../server/services/youtube.js)**: le pide canciones a la YouTube Data API v3 (búsqueda, populares, por género). También es donde se registra cuánta "cuota" (quota) se gasta en cada llamada — ver la sección de cuota más abajo.
 - **[mailer.js](../server/services/mailer.js)**: manda el mail de recuperación de contraseña usando la API de SendGrid.
 - **[quota.js](../server/services/quota.js)**: lleva la cuenta de cuánta cuota de YouTube se gastó hoy (guardada en la base de datos, para que sobreviva a un reinicio del servidor).
+- **[presence.js](../server/services/presence.js)**: quién está conectado ahora mismo. Un `Map<userId, timestamp>` **en memoria**, no en la base — es un estado efímero (ver la sección siguiente).
+- **[lastfm.js](../server/services/lastfm.js)**: le pide a la API de Last.fm artistas parecidos a uno dado, y resuelve una búsqueda de texto libre al artista más parecido que conozca. Lo usa `recommendations.js`.
+- **[recommendations.js](../server/services/recommendations.js)**: arma la sección "Recomendado" del dashboard — ver la sección dedicada más abajo.
 - **[jamendo.js](../server/services/jamendo.js)**: **código muerto**. Era el servicio equivalente a `youtube.js` cuando el catálogo era Jamendo (ver [01-historia.md](01-historia.md)). `music.js` ya no lo importa. Queda como candidato a borrar.
+
+### Quién está conectado: heartbeat, no WebSockets
+
+El dashboard (`js/dashboard/main.js`) manda un `POST /api/heartbeat` cada 20 segundos mientras está abierto — eso es todo lo que hace falta para que `presence.js` sepa que ese usuario sigue ahí. El panel de admin considera a alguien "conectado" si su último heartbeat fue hace menos de 45 segundos (`isOnline()` en `presence.js`), y hace polling propio cada 15 segundos mientras se está mirando esa vista para que el estado se sienta en vivo.
+
+Se descartó WebSockets a propósito: darían un estado más instantáneo de verdad, pero Render (plan gratis) duerme el server por inactividad, y sostener conexiones persistentes abiertas choca justo con eso — además de sumar el problema de manejar reconexión del lado del cliente. El heartbeat cada 20s es "tiempo real" con margen suficiente para este caso de uso, sin esa complejidad.
+
+### "Recomendado": por playlists y búsquedas, no un pool genérico
+
+Antes, la sección "Recomendado" del dashboard mostraba los artistas más repetidos dentro del pool de canciones "populares" — lo mismo para cualquier usuario, sin mirar qué hace cada uno. `recommendations.js` arma algo personalizado:
+
+1. Reúne artistas "semilla": los de las playlists del usuario (más recientes primero) + los que resuelve `lastfm.resolveArtistFromQuery()` a partir de sus últimas búsquedas en `search_history` (una tabla que guarda cada `GET /api/music/search`, podada a las últimas 30 filas por usuario). Si no hay ninguna semilla (cuenta nueva, sin playlists ni búsquedas todavía), devuelve `[]` — el frontend cae al fallback de siempre, no se rompe la sección.
+2. Para cada semilla, `lastfm.getSimilarArtists()` trae artistas parecidos; se juntan, se rankean por cuántas semillas distintas los sugirieron, y se descartan los que el usuario ya tiene entre sus semillas (no tiene sentido recomendarle lo que ya escucha).
+3. A los primeros 6, se les busca una canción real con `youtube.searchTracks()` (la misma función que ya usan `/genre` y `/search` — no hubo que escribir nada nuevo para YouTube acá) y se toma el primer resultado.
+4. El resultado se **cachea en memoria por usuario, 30 minutos**. Importante por costo: armar esto de cero puede llegar a gastar unas 600 unidades de cuota de YouTube (hasta 6 búsquedas × 101 unidades cada una, ver la sección de cuota) — no es algo que se pueda recalcular en cada carga del dashboard.
+
+Por qué Last.fm y no Spotify: Spotify deprecó justo los endpoints que servirían acá (`audio-features`, `related-artists`, `recommendations`) para cualquier app creada después de noviembre de 2024 — no son una opción real hoy. Last.fm sigue teniendo `artist.getsimilar` gratis y sin esa restricción. Requiere `LASTFM_API_KEY` (ver [05-pwa-y-deploy.md](05-pwa-y-deploy.md)) — sin ella, el endpoint no rompe nada, solo devuelve `[]` (cada llamada a Last.fm falla, se loguea el error, y se sigue de largo).
 
 ### La cuota de YouTube, explicada
 
@@ -63,7 +83,7 @@ Se usa **`@libsql/client`**, la librería cliente de [Turso](https://turso.tech)
 
 `db.js` no usa un ORM (una librería que traduce objetos de JavaScript a filas de base de datos, tipo Prisma o Sequelize) — las consultas son SQL crudo, con tres funciones de ayuda (`db.get`, `db.all`, `db.run`) para no repetir el boilerplate de `db.execute({ sql, args })` en cada ruta. Las tablas se crean con `CREATE TABLE IF NOT EXISTS` al arrancar el servidor — no hay un sistema de migraciones (una herramienta que versiona los cambios de esquema paso a paso); si el esquema cambia, hay que agregar el `ALTER TABLE` a mano.
 
-Las tablas actuales: `users`, `email_verifications`, `password_resets`, `playlists`, `playlist_songs`, y `youtube_quota_usage`.
+Las tablas actuales: `users`, `email_verifications`, `password_resets`, `playlists`, `playlist_songs`, `youtube_quota_usage`, y `search_history` (una fila por cada búsqueda de cada usuario, podada a las últimas 30 por usuario — la usa `recommendations.js`, ver más abajo).
 
 ## Los tests (`test/`)
 

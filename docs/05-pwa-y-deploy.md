@@ -49,6 +49,7 @@ Las variables que usa la app (ver `.env.example` para la lista con descripciones
 | `ADMIN_EMAIL` | Qué cuenta tiene acceso al panel de administración. |
 | `YOUTUBE_API_KEY` | Credencial para la YouTube Data API (el catálogo de música). |
 | `SENDGRID_API_KEY` / `SENDGRID_FROM_EMAIL` | Para mandar el mail de recuperación de contraseña. |
+| `LASTFM_API_KEY` | Gratis en [last.fm/api/account/create](https://www.last.fm/api/account/create). Para armar la sección "Recomendado" personalizada (ver [03-backend.md](03-backend.md)). Sin ella, esa sección se queda con su fallback (top artistas del pool de populares) en vez de romper. |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Conexión a la base de datos en producción. Si no están, cae a SQLite local (pensado para desarrollo). |
 | `YOUTUBE_DAILY_QUOTA` *(opcional)* | Si en algún momento se le pide a Google más cuota diaria que el default de 10.000 unidades, este valor ajusta el panel de admin para que muestre el límite correcto. |
 | `JAMENDO_CLIENT_ID` | Quedó de cuando el catálogo era Jamendo (ver [01-historia.md](01-historia.md)). Ya no lo usa ningún archivo del código — candidato a borrar de Render cuando se limpie `server/services/jamendo.js`. |

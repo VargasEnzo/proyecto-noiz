@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const requireAdmin = require('../middleware/requireAdmin');
 const { getYoutubeUsageToday } = require('../services/quota');
+const { isOnline } = require('../services/presence');
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ router.get('/users', async (req, res) => {
          ORDER BY u.id`
     );
 
-    res.json(users);
+    res.json(users.map((u) => ({ ...u, online: isOnline(u.id) })));
 });
 
 router.get('/users/:id/playlists', async (req, res) => {

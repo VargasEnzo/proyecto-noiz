@@ -1,3 +1,4 @@
+import { state } from './state.js';
 import { escapeHtml } from './utils.js';
 import {
     fetchAdminStats,
@@ -62,6 +63,12 @@ function renderUsers(users) {
             (u) => `
         <tr data-user-id="${u.id}">
             <td>${escapeHtml(u.nombre)} ${escapeHtml(u.apellido)}</td>
+            <td>
+                <span class="admin-status ${u.online ? 'admin-status-online' : 'admin-status-offline'}">
+                    <span class="admin-status-dot"></span>
+                    ${u.online ? 'Conectado' : 'Desconectado'}
+                </span>
+            </td>
             <td>${escapeHtml(u.email)}</td>
             <td>
                 <select class="admin-plan-select" data-user-id="${u.id}">
@@ -121,3 +128,10 @@ export function selectAdmin() {
 
 navAdmin.addEventListener('click', selectAdmin);
 adminBackBtn.addEventListener('click', selectHome);
+
+// Refresca la tabla mientras se está mirando esta vista, para que el estado
+// online/offline de cada usuario se sienta "en vivo". No hace falta manejar
+// un clearInterval al salir: es un no-op barato cuando currentView no es 'admin'.
+setInterval(() => {
+    if (state.currentView === 'admin') loadAdminData();
+}, 15000);

@@ -21,6 +21,12 @@ export async function fetchPopularTracks() {
     return response.json();
 }
 
+export async function fetchRecommendations() {
+    const response = await fetch('/api/music/recommendations');
+    if (!response.ok) return [];
+    return response.json();
+}
+
 export async function searchTracksRequest(query) {
     const response = await fetch(`/api/music/search?q=${encodeURIComponent(query)}`);
     if (!response.ok) return [];
@@ -62,6 +68,10 @@ export async function addSongToPlaylistRequest(playlistId, song) {
 
 export async function removeSongFromPlaylistRequest(playlistId, songId) {
     await fetch(`/api/playlists/${playlistId}/songs/${songId}`, { method: 'DELETE' });
+}
+
+export function sendHeartbeat() {
+    fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
 }
 
 // --- Admin ---
