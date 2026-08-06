@@ -117,6 +117,7 @@ export function playMusic() {
     mpPlayBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
     fsPlayBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
     highlightActiveSong();
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 
     if (!isPlayerReady) {
         pendingAutoplay = true;
@@ -139,6 +140,7 @@ export function pauseMusic() {
     pendingAutoplay = false;
     stopProgressLoop();
     if (isPlayerReady) ytPlayer.pauseVideo();
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
 }
 
 export function loadMusic(song) {
@@ -155,6 +157,14 @@ export function loadMusic(song) {
     fsArtist.textContent = song.artist;
     fsCover.src = song.cover;
     nowPlayingBg.style.backgroundImage = `url("${song.cover}")`;
+
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.displayName,
+            artist: song.artist,
+            artwork: [{ src: song.cover }],
+        });
+    }
 
     renderDiscoverSide();
 
@@ -275,3 +285,79 @@ fsProgressBar.addEventListener('click', setProgressBar);
 
 nowPlayingOpenBtn.addEventListener('click', openNowPlaying);
 nowPlayingCollapseBtn.addEventListener('click', closeNowPlaying);
+
+// Atajos de teclado: espacio = play/pausa, flechas arriba/abajo = volumen,
+// flechas izquierda/derecha = retroceder/avanzar 5s, Ctrl/Cmd + flecha
+// izquierda/derecha = canción anterior/siguiente, M = silenciar. Se ignoran si
+// el foco está en un input/textarea/select (por ejemplo, escribiendo el nombre
+// de una playlist o buscando) para no interferir con la escritura normal. El
+// slider de volumen también es un <input>, así que queda afuera acá a
+// propósito: las flechas ya lo mueven de forma nativa, y ese 'input' ya
+// dispara setVolume().
+const VOLUME_STEP = 0.05;
+const SEEK_STEP_SECONDS = 5;
+
+function isTypingTarget(el) {
+    if (!el) return false;
+    const tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+}
+
+function seekBy(deltaSeconds) {
+    if (!isPlayerReady) return;
+    const target = Math.min(Math.max(ytPlayer.getCurrentTime() + deltaSeconds, 0), ytPlayer.getDuration());
+    ytPlayer.seekTo(target, true);
+    updateProgressBar();
+}
+
+document.addEventListener('keydown', (e) => {
+    if (isTypingTarget(e.target)) return;
+
+    const isHorizontalArrow = e.code === 'ArrowLeft' || e.code === 'ArrowRight';
+    if (isHorizontalArrow && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        changeMusic(e.code === 'ArrowRight' ? 1 : -1);
+        return;
+    }
+
+    switch (e.code) {
+        case 'Space':
+            e.preventDefault();
+            togglePlay();
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            setVolume(Math.min(1, Number(mpVolumeSlider.value) + VOLUME_STEP).toFixed(2));
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            setVolume(Math.max(0, Number(mpVolumeSlider.value) - VOLUME_STEP).toFixed(2));
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            seekBy(SEEK_STEP_SECONDS);
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            seekBy(-SEEK_STEP_SECONDS);
+            break;
+        case 'KeyM':
+            e.preventDefault();
+            toggleMute();
+            break;
+    }
+});
+
+// Teclas multimedia de hardware (play/pausa, pista siguiente/anterior — las
+// que en muchos teclados viven como función secundaria de F3/F4/etc.) no
+// llegan como eventos de teclado comunes: el sistema operativo se las entrega
+// al navegador a través de la Media Session API, no como un 'keydown' más.
+// De paso, esto hace que el sistema (pantalla de bloqueo, notificaciones,
+// auriculares Bluetooth) muestre nombre/portada de la canción, como en
+// cualquier app de música real.
+if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', playMusic);
+    navigator.mediaSession.setActionHandler('pause', pauseMusic);
+    navigator.mediaSession.setActionHandler('previoustrack', () => changeMusic(-1));
+    navigator.mediaSession.setActionHandler('nexttrack', () => changeMusic(1));
+}

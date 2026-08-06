@@ -4,6 +4,15 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-06 (2) — Atajos de teclado en el reproductor
+
+Un tester avisó que la barra espaciadora no hacía nada (solo scrolleaba la página) porque no había ningún listener de teclado en el dashboard.
+
+- `js/dashboard/player.js`: espacio (play/pausa), flechas arriba/abajo (volumen ±5%), flechas izquierda/derecha (retroceder/avanzar 5s), Ctrl/Cmd + flecha izquierda/derecha (canción anterior/siguiente), M (silenciar). Se ignoran con el foco en un input/textarea/select para no interferir al escribir (buscador, nombre de playlist); el slider de volumen queda afuera de ese chequeo a propósito porque las flechas ya lo mueven nativamente.
+- **Media Session API**: las teclas multimedia de hardware (play/pausa, siguiente/anterior — en muchos teclados son función secundaria de F3/F4/etc.) no llegan como `keydown`, el sistema operativo se las pasa al navegador por otra vía. Se agregó `navigator.mediaSession.setActionHandler` para esas tres acciones, más `metadata`/`playbackState` actualizados en `loadMusic`/`playMusic`/`pauseMusic` — de paso, Noiz ahora aparece con nombre, artista y portada en los controles del sistema (pantalla de bloqueo, notificaciones, auriculares Bluetooth).
+
+---
+
 ## 2026-08-06 — Estado online en el panel de admin + Recomendado personalizado
 
 Dos pedidos del usuario, con una decisión de arquitectura para cada uno (quedaron registradas antes de tocar código, ver el resto de esta entrada).
