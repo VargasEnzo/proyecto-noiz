@@ -68,6 +68,8 @@ router.get('/search', async (req, res) => {
     }
 });
 
+const MAX_ARTIST_TRACKS = 10;
+
 router.get('/artist-tracks', async (req, res) => {
     const artist = req.query.artist;
     if (!artist) {
@@ -76,7 +78,7 @@ router.get('/artist-tracks', async (req, res) => {
 
     try {
         const tracks = await getArtistTracks(artist);
-        const filtered = tracks.filter((t) => t.id !== req.query.excludeId).slice(0, 3);
+        const filtered = tracks.filter((t) => t.id !== req.query.excludeId).slice(0, MAX_ARTIST_TRACKS);
         res.json(filtered);
     } catch (err) {
         console.error(err);

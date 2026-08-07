@@ -4,6 +4,19 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-07 (2) — Ajustes al rediseño: caja única, más canciones y créditos
+
+Feedback del usuario probando el rediseño anterior ya desplegado, más un pedido nuevo.
+
+- **`song_side` y `discover_side` pasan a compartir una sola caja "vidriosa"** (`.content_side`, nuevo contenedor en `html/dashboard.html`) en vez de ser dos cajas separadas con un hueco y doble borde entre medio — pedido explícito tras ver el primer intento (el panel derecho quedaba "flotando" aparte). `.discover_side` ahora ocupa toda la altura de esa caja compartida (antes se achicaba a su contenido, lo cual tenía sentido como caja aparte pero dejaba un hueco raro dentro de la caja única) y se separa del lado central con un `border-left` sutil en vez de un gap. Mantiene su tono más oscuro (`--color-panel-bg-strong`).
+- **"Más de este artista" pasa de 3 a 10 canciones** (`MAX_ARTIST_TRACKS` en `server/routes/music.js`) — con el panel a toda altura, 3 dejaba mucho espacio vacío abajo; no quedaba armónico.
+- **Se revirtió la barra de progreso en forma de onda** (la de la entrada anterior). Dos intentos de ajustarla (bajar la altura de las barras, `overflow:hidden` en `.master_play`) no resolvieron el desfasaje que se veía en el reproductor — es una feature puramente decorativa, no vale la pena seguir iterando a ciegas sobre eso. Vuelve la barra lisa original (`#mp-progress`/`#fs-progress`, `width` dinámico).
+- **Créditos de autor**: `Hecho por Enzo Vargas` (con link a github.com/VargasEnzo), en dos lugares — pie de la página de login (`.page-credit`, lo primero que ve cualquiera que entre a mirar el proyecto, ni siquiera hace falta loguearse) y al fondo del sidebar del dashboard (`.sidebar-credit`, discreto, no tapa nada). Se priorizó login sobre dashboard porque para un proyecto de portfolio, quien lo evalúa no necesariamente crea una cuenta.
+
+Verificado: `node --test` sigue en 21/21. Sintaxis de `player.js` chequeada con `node --check`.
+
+---
+
 ## 2026-08-07 — Rediseño del dashboard: hero, panel derecho y forma de onda
 
 Pedido del usuario a partir de una captura de referencia (una app tipo "myplayai"). Cuatro cambios de layout/contenido, pensados para no pisarse entre sí:

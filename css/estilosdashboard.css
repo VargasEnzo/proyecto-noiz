@@ -368,6 +368,22 @@ header{
   color: var(--color-danger);
 }
 
+.sidebar-credit{
+  padding: 0 20px 14px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.sidebar-credit a{
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-credit a:hover{
+  color: var(--color-accent-soft);
+}
+
 /* --- song_side: hero + lista --- */
 
 .now-playing-hero{
@@ -755,28 +771,18 @@ header{
 
 .mp-progress-bar{
   flex: 1;
-  height: 20px;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
+  height: 4px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.15);
   cursor: pointer;
 }
 
-/* Barritas tipo "forma de onda": alturas generadas por cancion (ver
-   renderWaveform en player.js), no analisis de audio real (el iframe oculto
-   de YouTube no expone eso). Se "iluminan" de izquierda a derecha a medida
-   que avanza la reproduccion. */
-.wave-bar{
-  flex: 1;
-  min-width: 2px;
-  border-radius: 2px;
-  background-color: rgba(255, 255, 255, 0.18);
-  pointer-events: none;
-  transition: background-color .1s linear;
-}
-
-.wave-bar.played{
+.mp-progress{
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
   background-color: var(--color-accent-soft);
+  transition: width .1s linear;
 }
 
 .mp-volume-wrap{

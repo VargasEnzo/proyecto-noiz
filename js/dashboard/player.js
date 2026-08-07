@@ -11,6 +11,7 @@ const heroEl = document.getElementById('now-playing-hero'),
     mpArtist = document.getElementById('mp-artist'),
     mpCurrentTime = document.getElementById('mp-current-time'),
     mpDuration = document.getElementById('mp-duration'),
+    mpProgress = document.getElementById('mp-progress'),
     mpProgressBar = document.getElementById('mp-progress-bar'),
     mpPrevBtn = document.getElementById('mp-prev'),
     mpNextBtn = document.getElementById('mp-next'),
@@ -27,6 +28,7 @@ const heroEl = document.getElementById('now-playing-hero'),
     fsArtist = document.getElementById('fs-artist'),
     fsCurrentTime = document.getElementById('fs-current-time'),
     fsDuration = document.getElementById('fs-duration'),
+    fsProgress = document.getElementById('fs-progress'),
     fsProgressBar = document.getElementById('fs-progress-bar'),
     fsPrevBtn = document.getElementById('fs-prev'),
     fsNextBtn = document.getElementById('fs-next'),
@@ -178,9 +180,10 @@ export function loadMusic(song) {
 
     mpCurrentTime.textContent = '0:00';
     mpDuration.textContent = '0:00';
+    mpProgress.style.width = '0%';
     fsCurrentTime.textContent = '0:00';
     fsDuration.textContent = '0:00';
-    renderWaveform(song.id);
+    fsProgress.style.width = '0%';
 
     // No se carga en YouTube todavia: se guarda como pendiente y playMusic()
     // la carga y reproduce en un solo paso (loadVideoById), sin la carrera
@@ -229,49 +232,13 @@ function toggleMute() {
     fsVolumeIcon.classList.toggle('bi-volume-mute-fill', isMuted);
 }
 
-// Barritas tipo "forma de onda" en vez de una barra lisa (ver .wave-bar en
-// estilosdashboard.css). No hay analisis de audio real: el iframe oculto de
-// YouTube no expone eso. Las alturas se generan a partir del id del video
-// (siempre las mismas para la misma cancion, distintas entre canciones) y
-// se van "iluminando" de izquierda a derecha a medida que avanza el tema.
-const WAVEFORM_BARS = 48;
-let mpBars = [];
-let fsBars = [];
-
-function waveformHeights(seed) {
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-        hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-    }
-
-    const heights = [];
-    for (let i = 0; i < WAVEFORM_BARS; i++) {
-        hash = (hash * 1103515245 + 12345) >>> 0;
-        heights.push(25 + (hash % 1000) / 1000 * 75); // 25%..100%
-    }
-    return heights;
-}
-
-function buildWaveformBars(container, heights) {
-    container.innerHTML = heights.map((h) => `<div class="wave-bar" style="height:${h}%"></div>`).join('');
-    return [...container.children];
-}
-
-function renderWaveform(songId) {
-    const heights = waveformHeights(songId);
-    mpBars = buildWaveformBars(mpProgressBar, heights);
-    fsBars = buildWaveformBars(fsProgressBar, heights);
-}
-
 function updateProgressBar() {
     if (!isPlayerReady) return;
     const duration = ytPlayer.getDuration();
     const currentTime = ytPlayer.getCurrentTime();
-    const progressPercent = (currentTime / duration) * 100 || 0;
-
-    const litBars = Math.round((progressPercent / 100) * WAVEFORM_BARS);
-    mpBars.forEach((bar, i) => bar.classList.toggle('played', i < litBars));
-    fsBars.forEach((bar, i) => bar.classList.toggle('played', i < litBars));
+    const progressPercent = (currentTime / duration) * 100;
+    mpProgress.style.width = `${progressPercent || 0}%`;
+    fsProgress.style.width = `${progressPercent || 0}%`;
 
     const formatTime = (time) => String(Math.floor(time)).padStart(2, '0');
     const durationText = `${formatTime(duration / 60) || 0}:${formatTime(duration % 60) || '00'}`;

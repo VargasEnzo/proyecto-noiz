@@ -30,7 +30,7 @@ Aparece un montón en este proyecto, vale la pena explicarlo una vez: un middlew
 | Archivo | Prefijo | Qué expone |
 |---|---|---|
 | [auth.js](../server/routes/auth.js) | `/api` | Registro (no autentica hasta confirmar el mail), login, logout, verificación de email y su reenvío, "olvidé mi contraseña", "cambiar contraseña", `GET/PUT /api/me` (perfil del usuario logueado), y `POST /api/heartbeat` (le avisa al server que el usuario sigue conectado — ver la sección de presencia más abajo). |
-| [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` (piden datos al servicio de YouTube), `/recommendations` (recomendaciones personalizadas — ver más abajo) y `/artist-tracks` (hasta 3 canciones de un artista, excluyendo una por id — alimenta el panel "Más de este artista", ver [02-frontend.md](02-frontend.md)). |
+| [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` (piden datos al servicio de YouTube), `/recommendations` (recomendaciones personalizadas — ver más abajo) y `/artist-tracks` (hasta 10 canciones de un artista, excluyendo una por id — alimenta el panel "Más de este artista", ver [02-frontend.md](02-frontend.md)). |
 | [playlists.js](../server/routes/playlists.js) | `/api/playlists` | CRUD de playlists del usuario logueado y de las canciones dentro de cada una. |
 | [admin.js](../server/routes/admin.js) | `/api/admin` | Estadísticas, listado de usuarios (con su estado online/offline), cambiar el plan de un usuario, borrar una cuenta, y la cuota de YouTube usada hoy. Todo detrás de `requireAdmin`. |
 
