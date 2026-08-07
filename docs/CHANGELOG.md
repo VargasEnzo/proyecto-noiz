@@ -4,6 +4,17 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-07 (4) — El panel derecho ocupa toda la altura, y fondo nuevo del dashboard
+
+Feedback del usuario viendo el rediseño ya desplegado: `.discover_side` (el panel de "Reproduciendo ahora" / "Más de este artista") se cortaba a la altura donde arrancaba el reproductor, dejando un hueco vacío abajo a la derecha en vez de llegar hasta el borde de la pantalla como el sidebar izquierdo.
+
+- **`.discover_side` pasa a ocupar las dos filas del grid** de `header` (antes solo la primera, igual que `.song_side`). Para lograrlo se sacó el contenedor `.content_side` que envolvía a `.song_side` y `.discover_side` bajo una sola caja — ahora son tres celdas de grid independientes (`.song_side`, `.discover_side`, `master_play`) que siguen leyéndose como una sola pieza en forma de L gracias al mismo truco de sacar borde/radio en los lados que se tocan (ver [02-frontend.md](02-frontend.md) para el detalle). `#admin-view` ahora se extiende a las dos columnas de la derecha (antes solo la del medio) para no dejar un hueco vacío ahí cuando el panel de admin está abierto y `.discover_side` se oculta.
+- **Fondo nuevo del dashboard** (`IMAGENES/fondo.jpg`, imagen provista por el usuario): reemplaza a `14.jpg` solo en `estilosdashboard.css` — el login y el resto de las páginas de auth siguen con el fondo anterior. Mismo tratamiento de siempre (`background-size: cover`, `filter: blur(10px)`, el `<div class="fondo">` agrandado 40px de más por lado para que el blur no deje ver el borde recortado).
+
+Verificado con Playwright contra el server local (desktop y emulando un Pixel 7): el panel derecho llega hasta abajo sin cortes, el fondo nuevo se ve con el blur aplicado, y el layout mobile (donde `.discover_side` sigue oculto) no se rompió. `node --test` sigue en 21/21.
+
+---
+
 ## 2026-08-07 (3) — El reproductor se integra a la caja central
 
 Feedback tras ver el rediseño ya desplegado, comparando contra una captura de referencia (una app tipo Apple Music/myplayai): el reproductor se sentía "desconectado" del resto, flotando aparte a todo el ancho de la pantalla.
