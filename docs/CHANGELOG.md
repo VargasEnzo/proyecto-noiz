@@ -4,6 +4,17 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-07 (5) — Glass del dashboard más claro y panel derecho pegado a la caja central
+
+Dos pedidos del usuario mirando el rediseño ya desplegado, comparando contra una captura de referencia (una app tipo Apple Music):
+
+- **El efecto glass de todo el dashboard es más claro.** Como el fondo ya es bien oscuro, las dos variables que pintan los paneles (`--color-panel-bg` para menú/centro/reproductor/admin y `--color-panel-bg-strong` para el panel derecho, más oscuro) pasaron de un negro-violáceo muy oscuro (`rgba(10,8,20,.55)` / `rgba(8,6,16,.8)`) a un violeta más claro y transparente (`rgba(48,40,78,.42)` / `rgba(30,24,54,.55)`). Se mantiene el derecho más oscuro que el centro para conservar la diferencia. Solo se tocaron variables en `variables.css`, no reglas puntuales.
+- **El panel derecho (`discover_side`) vuelve a quedar pegado a la caja central.** El grid de `header` tenía `column-gap: 16px`, que separaba las tres columnas por igual — incluida la que va entre `song_side` (centro) y `discover_side` (derecha), que tienen que tocarse para leerse como una sola pieza. Al quedar separado, además, exponía los vértices izquierdos cuadrados del panel derecho (que son cuadrados a propósito, porque su radio está pensado para ir pegado). Se puso `column-gap: 0` y la separación menú↔centro (la única que queremos) ahora la da un `margin-right: 16px` en `.menu_side`. Así los tres paneles de la derecha se pegan sin gap y las cuatro esquinas exteriores del conjunto quedan redondeadas.
+
+Verificado: `node --test` sigue en 21/21. Cambios solo de CSS.
+
+---
+
 ## 2026-08-07 (4) — El panel derecho ocupa toda la altura, y fondo nuevo del dashboard
 
 Feedback del usuario viendo el rediseño ya desplegado: `.discover_side` (el panel de "Reproduciendo ahora" / "Más de este artista") se cortaba a la altura donde arrancaba el reproductor, dejando un hueco vacío abajo a la derecha en vez de llegar hasta el borde de la pantalla como el sidebar izquierdo.

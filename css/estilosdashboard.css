@@ -54,7 +54,7 @@ header{
   display: grid;
   grid-template-columns: 22% 1fr 300px;
   grid-template-rows: 1fr auto;
-  column-gap: 16px;
+  column-gap: 0;
   row-gap: 0;
 }
 
@@ -71,9 +71,15 @@ header{
   color: var(--color-text);
 }
 
+/* El gap del grid (column-gap) esta en 0 a proposito: song_side, discover_side
+   y master_play tienen que tocarse sin separacion para leerse como una sola
+   pieza. La unica separacion que queremos es entre el menu y esa pieza, asi que
+   la damos con este margin-right en vez de un column-gap que separaria tambien
+   song_side de discover_side. */
 .menu_side{
   grid-column: 1;
   grid-row: 1 / 3;
+  margin-right: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
