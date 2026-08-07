@@ -57,7 +57,7 @@ header{
   width: 85vw;
   height: 95vh;
   display: grid;
-  grid-template-columns: 22% 1fr 25%;
+  grid-template-columns: 22% 1fr;
   grid-template-rows: 1fr auto;
   gap: 16px;
 }
@@ -65,8 +65,7 @@ header{
 /* Paneles vidriosos compartidos */
 
 .menu_side,
-.song_side,
-.discover_side,
+.content_side,
 .master_play,
 #admin-view{
   backdrop-filter: blur(14px);
@@ -85,24 +84,36 @@ header{
   min-height: 0;
 }
 
-.song_side{
+/* song_side y discover_side viven juntos dentro de una misma caja "vidriosa"
+   (antes eran dos cajas separadas con un hueco entre medio). El overflow:hidden
+   ademas recorta a los dos hijos con el mismo borde redondeado del contenedor,
+   asi ninguno de los dos necesita redondear sus propias esquinas. */
+.content_side{
   grid-column: 2;
   grid-row: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.song_side{
+  flex: 1;
   padding: 20px;
   overflow-y: auto;
   min-height: 0;
 }
 
 .discover_side{
-  grid-column: 3;
-  grid-row: 1;
-  align-self: start;
+  flex: 0 0 300px;
   padding: 20px;
+  overflow-y: auto;
+  min-height: 0;
   background-color: var(--color-panel-bg-strong);
+  border-left: 1px solid var(--color-glass-border);
 }
 
 #admin-view{
-  grid-column: 2 / 4;
+  grid-column: 2;
   grid-row: 1;
   padding: 20px;
   overflow-y: auto;
@@ -117,6 +128,7 @@ header{
   justify-content: space-between;
   padding: 0 20px;
   height: 70px;
+  overflow: hidden;
 }
 
 /* --- Elementos exclusivos de mobile (ocultos por defecto en escritorio) --- */
@@ -134,29 +146,34 @@ header{
 /* Scrollbar acorde al resto de la interfaz (en vez de la barra blanca por defecto) */
 
 .playlist,
-.song_side{
+.song_side,
+.discover_side{
   scrollbar-width: thin;
   scrollbar-color: var(--color-scrollbar-thumb) transparent;
 }
 
 .playlist::-webkit-scrollbar,
-.song_side::-webkit-scrollbar{
+.song_side::-webkit-scrollbar,
+.discover_side::-webkit-scrollbar{
   width: 8px;
 }
 
 .playlist::-webkit-scrollbar-track,
-.song_side::-webkit-scrollbar-track{
+.song_side::-webkit-scrollbar-track,
+.discover_side::-webkit-scrollbar-track{
   background: transparent;
 }
 
 .playlist::-webkit-scrollbar-thumb,
-.song_side::-webkit-scrollbar-thumb{
+.song_side::-webkit-scrollbar-thumb,
+.discover_side::-webkit-scrollbar-thumb{
   background-color: var(--color-scrollbar-thumb);
   border-radius: 10px;
 }
 
 .playlist::-webkit-scrollbar-thumb:hover,
-.song_side::-webkit-scrollbar-thumb:hover{
+.song_side::-webkit-scrollbar-thumb:hover,
+.discover_side::-webkit-scrollbar-thumb:hover{
   background-color: var(--color-accent-soft);
 }
 
@@ -738,7 +755,7 @@ header{
 
 .mp-progress-bar{
   flex: 1;
-  height: 28px;
+  height: 20px;
   display: flex;
   align-items: flex-end;
   gap: 2px;
@@ -1381,7 +1398,7 @@ header{
   }
 
   /* En mobile el panel derecho (discover_side) esta oculto, asi que
-     "Recomendado" se muestra dentro del cajon hamburguesa en su lugar. */
+     "Mas de este artista" se muestra dentro del cajon hamburguesa en su lugar. */
   .sidebar-section-header.mobile-only-section{
     display: flex;
   }
@@ -1472,11 +1489,15 @@ header{
     color: var(--color-text);
   }
 
-  .song_side,
+  .content_side,
   #admin-view{
     grid-column: 1;
     grid-row: 2;
     min-width: 0;
+  }
+
+  .song_side,
+  #admin-view{
     padding: 14px;
   }
 
