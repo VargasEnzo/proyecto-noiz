@@ -1,53 +1,29 @@
+// Panel derecho (discover_side): ya no es "Recomendado" (eso se mudó a
+// poblar "Inicio", ver main.js) — ahora es un acompañante de lo que se está
+// reproduciendo: portada/título/artista de la canción actual, y debajo hasta
+// 3 canciones más del mismo artista. Se actualiza en cada loadMusic() (ver
+// player.js).
+
 import { state } from './state.js';
 import { escapeHtml, closeMobileMenu } from './utils.js';
-import { showArtistSongs } from './browse.js';
-import { loadMusic, playMusic } from './player.js';
-import { fetchRecommendations } from './api.js';
+import { loadMusic, playMusic, openNowPlaying } from './player.js';
+import { fetchArtistTracks } from './api.js';
 
-const topArtistsListEl = document.getElementById('top-artists-list'),
-    mobileTopArtistsListEl = document.getElementById('mobile-top-artists-list');
+const nowPlayingCardEl = document.getElementById('discover-now-playing'),
+    nowPlayingCoverEl = document.getElementById('discover-now-playing-cover'),
+    nowPlayingTitleEl = document.getElementById('discover-now-playing-title'),
+    nowPlayingArtistEl = document.getElementById('discover-now-playing-artist'),
+    artistTracksListEl = document.getElementById('artist-tracks-list'),
+    mobileArtistTracksListEl = document.getElementById('mobile-artist-tracks-list');
 
-// Fallback mientras no hay recomendaciones personalizadas (usuario nuevo,
-// sin playlists ni búsquedas todavía): los 6 artistas más repetidos dentro
-// del pool de canciones "populares" que ya se cargó.
-function getTopArtistas() {
-    const counts = {};
-    state.homeSongs.forEach((s) => {
-        counts[s.artist] = (counts[s.artist] || 0) + 1;
-    });
-    return Object.entries(counts)
-        .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-        .sort((a, b) => b.cantidad - a.cantidad)
-        .slice(0, 6);
-}
+nowPlayingCardEl.addEventListener('click', openNowPlaying);
 
-function renderArtistRows(container, artistas) {
-    container.innerHTML = artistas
-        .map(
-            (a) => `
-        <div class="top-artist-row" data-nombre="${escapeHtml(a.nombre)}">
-            <i class="bi bi-person-circle"></i>
-            <div class="top-artist-info">
-                <span class="top-artist-name">${escapeHtml(a.nombre)}</span>
-                <span class="top-artist-count">${a.cantidad} canción${a.cantidad === 1 ? '' : 'es'}</span>
-            </div>
-        </div>
-    `
-        )
-        .join('');
-
-    container.querySelectorAll('.top-artist-row').forEach((row) => {
-        row.addEventListener('click', () => {
-            closeMobileMenu();
-            showArtistSongs(row.dataset.nombre);
-        });
-    });
-}
-
-// Recomendaciones personalizadas: son canciones reales (ver
-// server/services/recommendations.js), así que cada fila se puede
-// reproducir directo en vez de solo navegar a la vista de un artista.
 function renderTrackRows(container, tracks) {
+    if (tracks.length === 0) {
+        container.innerHTML = '<p class="add-menu-empty">No hay más canciones de este artista por ahora.</p>';
+        return;
+    }
+
     container.innerHTML = tracks
         .map(
             (track, index) => `
@@ -65,7 +41,7 @@ function renderTrackRows(container, tracks) {
     container.querySelectorAll('.top-artist-row').forEach((row) => {
         row.addEventListener('click', () => {
             closeMobileMenu();
-            state.playbackQueue = state.recommendedTracks;
+            state.playbackQueue = tracks;
             state.musicIndex = Number(row.dataset.index);
             loadMusic(state.playbackQueue[state.musicIndex]);
             playMusic();
@@ -73,25 +49,19 @@ function renderTrackRows(container, tracks) {
     });
 }
 
-export function renderDiscoverSide() {
-    if (state.recommendedTracks.length > 0) {
-        renderTrackRows(topArtistsListEl, state.recommendedTracks);
-        renderTrackRows(mobileTopArtistsListEl, state.recommendedTracks);
-        return;
-    }
+// Evita que la respuesta de un artista viejo pise a una más nueva si el
+// usuario cambia de canción rápido (dos requests en vuelo, gana el último).
+let requestId = 0;
 
-    const artistas = getTopArtistas();
-    renderArtistRows(topArtistsListEl, artistas);
-    renderArtistRows(mobileTopArtistsListEl, artistas);
-}
+export async function renderArtistPanel(song) {
+    nowPlayingCoverEl.src = song.cover;
+    nowPlayingTitleEl.textContent = song.displayName;
+    nowPlayingArtistEl.textContent = song.artist;
 
-// Se llama una sola vez al arrancar el dashboard (ver main.js), en paralelo
-// sin bloquear la carga inicial. Si el usuario no tiene playlists ni
-// búsquedas todavía, el server devuelve [] y se sigue mostrando el fallback.
-export async function loadRecommendations() {
-    const tracks = await fetchRecommendations();
-    if (tracks.length > 0) {
-        state.recommendedTracks = tracks;
-        renderDiscoverSide();
-    }
+    const thisRequest = ++requestId;
+    const tracks = await fetchArtistTracks(song.artist, song.id);
+    if (thisRequest !== requestId) return;
+
+    renderTrackRows(artistTracksListEl, tracks);
+    renderTrackRows(mobileArtistTracksListEl, tracks);
 }

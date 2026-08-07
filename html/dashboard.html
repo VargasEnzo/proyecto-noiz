@@ -79,9 +79,9 @@
         <div class="playlist-list" id="playlist-list"></div>
 
         <div class="sidebar-section-header mobile-only-section">
-          <span>Recomendado</span>
+          <span>Más de este artista</span>
         </div>
-        <div class="playlist-list mobile-only-section" id="mobile-top-artists-list"></div>
+        <div class="playlist-list mobile-only-section" id="mobile-artist-tracks-list"></div>
       </nav>
 
       <div class="sidebar-profile">
@@ -98,7 +98,7 @@
       <div class="now-playing-hero" id="now-playing-hero">
         <img src="" id="hero-cover" alt="">
         <div class="now-playing-hero-overlay">
-          <span class="hero-eyebrow">Sonando ahora</span>
+          <span class="hero-eyebrow">Top del momento</span>
           <h2 id="hero-title"></h2>
           <p id="hero-artist"></p>
         </div>
@@ -110,8 +110,17 @@
     </div>
 
     <div class="discover_side">
-      <h3 class="discover_title">Recomendado</h3>
-      <div id="top-artists-list"></div>
+      <h3 class="discover_title">Reproduciendo ahora</h3>
+      <div class="discover-now-playing" id="discover-now-playing">
+        <img src="" alt="" id="discover-now-playing-cover">
+        <div class="discover-now-playing-info">
+          <span class="discover-now-playing-title" id="discover-now-playing-title"></span>
+          <span class="discover-now-playing-artist" id="discover-now-playing-artist"></span>
+        </div>
+      </div>
+
+      <h3 class="discover_title">Más de este artista</h3>
+      <div id="artist-tracks-list"></div>
     </div>
 
     <div class="admin-view hidden" id="admin-view">
@@ -174,9 +183,7 @@
         </div>
         <div class="mp-progress-wrap">
           <span id="mp-current-time">0:00</span>
-          <div class="mp-progress-bar" id="mp-progress-bar">
-            <div class="mp-progress" id="mp-progress"></div>
-          </div>
+          <div class="mp-progress-bar" id="mp-progress-bar"></div>
           <span id="mp-duration">0:00</span>
         </div>
       </div>
@@ -208,9 +215,7 @@
 
         <div class="nowplaying-progress-wrap">
           <span id="fs-current-time">0:00</span>
-          <div class="mp-progress-bar" id="fs-progress-bar">
-            <div class="mp-progress" id="fs-progress"></div>
-          </div>
+          <div class="mp-progress-bar" id="fs-progress-bar"></div>
           <span id="fs-duration">0:00</span>
         </div>
 

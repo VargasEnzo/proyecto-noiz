@@ -4,6 +4,21 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-07 — Rediseño del dashboard: hero, panel derecho y forma de onda
+
+Pedido del usuario a partir de una captura de referencia (una app tipo "myplayai"). Cuatro cambios de layout/contenido, pensados para no pisarse entre sí:
+
+- **Hero ("Top del momento")**: antes decía "Sonando ahora" con un lila que se perdía contra el fondo — se cambió el texto (`.hero-eyebrow` en `html/dashboard.html`) y el color a blanco. De paso se **desacopló del reproductor**: antes `loadMusic()` lo pisaba con la canción actual cada vez que cambiabas de tema, lo cual lo volvía redundante con la mini-barra de abajo. Ahora es un destacado fijo (la primera canción de "Inicio") que solo cambia `setHero()`, y es clickeable — reproduce esa canción al tocarlo (antes no tenía ningún listener).
+- **Panel derecho (`discover_side`) repensado**: dejó de ser "Recomendado" (6 artistas/canciones fijas) para pasar a ser un acompañante de lo que se está reproduciendo — portada/título/artista de la canción actual, y debajo hasta 3 canciones más del mismo artista (`GET /api/music/artist-tracks`, nuevo — cachea 30 min por artista en `youtube.js` por el mismo motivo de costo que `recommendations.js`: `search.list` cuesta 100 unidades de cuota). Se actualiza en cada `loadMusic()`, con un `requestId` incremental en `discover.js` para que la respuesta de un artista viejo no pise a una más nueva si el usuario cambia de canción rápido. En mobile, el cajón hamburguesa ahora muestra "Más de este artista" en vez de "Recomendado" (sin la mini-card, que sería redundante con la vista de pantalla completa).
+- **¿Y "Recomendado"?** Esa lógica personalizada (Last.fm + playlists/búsquedas, ver `server/services/recommendations.js`) no se tiró: se mudó a alimentar **"Inicio"**. `main.js` sigue mostrando el catálogo popular de entrada (rápido, sin bloquear), y en paralelo pide `/api/music/recommendations`; si vuelve con algo, esas canciones pasan a encabezar la lista (sin duplicar) y el hero se actualiza a la primera de ellas — sin interrumpir lo que ya esté sonando. Si el usuario no tiene playlists ni búsquedas todavía, no cambia nada (mismo comportamiento que antes).
+- **Diferenciación visual**: `.discover_side` ya no se estira a toda la altura de la pantalla (`align-self: start` en el grid de `header`) — su alto ahora lo define su contenido, como en la referencia. Además usa un fondo más oscuro/opaco (`--color-panel-bg-strong`, nueva variable) que `.song_side`, para distinguirse sin dejar de sentirse parte del mismo sistema de paneles "vidriosos".
+- **Barra de progreso → forma de onda**: la barra lisa (`#mp-progress`/`#fs-progress`) se reemplazó por ~48 barritas (`.wave-bar`) cuya altura se genera con un hash simple del id del video — siempre igual para la misma canción, distinta entre canciones. No es un análisis de audio real (el iframe oculto de YouTube no expone eso), es decorativo. `updateProgressBar()` les agrega la clase `.played` de izquierda a derecha según el tiempo transcurrido. Las barras tienen `pointer-events: none` a propósito, así el click para buscar (`seek`) sigue cayendo sobre el contenedor sin tener que tocar `setProgressBar()`.
+- Se limpió código que quedó sin uso tras el cambio: `showArtistSongs()` (browse.js), `state.recommendedTracks`, y las filas de artista con ícono de persona (`.top-artist-row .bi-person-circle`) del viejo fallback de "Recomendado".
+
+Verificado: `node --test` sigue en 21/21. Sintaxis de todos los módulos ES tocados chequeada con `node --check` (no había Playwright instalado en esta máquina para una captura real — pendiente probarlo a mano en el navegador).
+
+---
+
 ## 2026-08-06 (2) — Atajos de teclado en el reproductor
 
 Un tester avisó que la barra espaciadora no hacía nada (solo scrolleaba la página) porque no había ningún listener de teclado en el dashboard.

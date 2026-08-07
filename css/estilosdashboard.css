@@ -96,9 +96,9 @@ header{
 .discover_side{
   grid-column: 3;
   grid-row: 1;
+  align-self: start;
   padding: 20px;
-  overflow-y: auto;
-  min-height: 0;
+  background-color: var(--color-panel-bg-strong);
 }
 
 #admin-view{
@@ -134,34 +134,29 @@ header{
 /* Scrollbar acorde al resto de la interfaz (en vez de la barra blanca por defecto) */
 
 .playlist,
-.song_side,
-.discover_side{
+.song_side{
   scrollbar-width: thin;
   scrollbar-color: var(--color-scrollbar-thumb) transparent;
 }
 
 .playlist::-webkit-scrollbar,
-.song_side::-webkit-scrollbar,
-.discover_side::-webkit-scrollbar{
+.song_side::-webkit-scrollbar{
   width: 8px;
 }
 
 .playlist::-webkit-scrollbar-track,
-.song_side::-webkit-scrollbar-track,
-.discover_side::-webkit-scrollbar-track{
+.song_side::-webkit-scrollbar-track{
   background: transparent;
 }
 
 .playlist::-webkit-scrollbar-thumb,
-.song_side::-webkit-scrollbar-thumb,
-.discover_side::-webkit-scrollbar-thumb{
+.song_side::-webkit-scrollbar-thumb{
   background-color: var(--color-scrollbar-thumb);
   border-radius: 10px;
 }
 
 .playlist::-webkit-scrollbar-thumb:hover,
-.song_side::-webkit-scrollbar-thumb:hover,
-.discover_side::-webkit-scrollbar-thumb:hover{
+.song_side::-webkit-scrollbar-thumb:hover{
   background-color: var(--color-accent-soft);
 }
 
@@ -364,6 +359,7 @@ header{
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-bottom: 20px;
+  cursor: pointer;
 }
 
 .now-playing-hero img{
@@ -384,9 +380,10 @@ header{
 
 .hero-eyebrow{
   font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--color-accent-soft);
+  color: #fff;
   margin-bottom: 6px;
 }
 
@@ -572,6 +569,51 @@ header{
   margin-top: 25px;
 }
 
+.discover-now-playing{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: .2s linear;
+}
+
+.discover-now-playing:hover{
+  background-color: var(--color-glass-bg-strong);
+}
+
+.discover-now-playing img{
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.discover-now-playing-info{
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
+}
+
+.discover-now-playing-title{
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discover-now-playing-artist{
+  font-size: 12px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .top-artist-row{
   display: flex;
   align-items: center;
@@ -584,11 +626,6 @@ header{
 
 .top-artist-row:hover{
   background-color: var(--color-glass-bg-strong);
-}
-
-.top-artist-row .bi-person-circle{
-  font-size: 32px;
-  color: var(--color-text-muted);
 }
 
 .recommended-track-cover{
@@ -701,18 +738,28 @@ header{
 
 .mp-progress-bar{
   flex: 1;
-  height: 4px;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.15);
+  height: 28px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
   cursor: pointer;
 }
 
-.mp-progress{
-  height: 100%;
-  width: 0%;
-  border-radius: 4px;
+/* Barritas tipo "forma de onda": alturas generadas por cancion (ver
+   renderWaveform en player.js), no analisis de audio real (el iframe oculto
+   de YouTube no expone eso). Se "iluminan" de izquierda a derecha a medida
+   que avanza la reproduccion. */
+.wave-bar{
+  flex: 1;
+  min-width: 2px;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+  transition: background-color .1s linear;
+}
+
+.wave-bar.played{
   background-color: var(--color-accent-soft);
-  transition: width .1s linear;
 }
 
 .mp-volume-wrap{

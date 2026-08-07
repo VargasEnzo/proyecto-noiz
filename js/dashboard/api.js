@@ -27,6 +27,13 @@ export async function fetchRecommendations() {
     return response.json();
 }
 
+export async function fetchArtistTracks(artist, excludeId) {
+    const params = new URLSearchParams({ artist, excludeId });
+    const response = await fetch(`/api/music/artist-tracks?${params}`);
+    if (!response.ok) return [];
+    return response.json();
+}
+
 export async function searchTracksRequest(query) {
     const response = await fetch(`/api/music/search?q=${encodeURIComponent(query)}`);
     if (!response.ok) return [];

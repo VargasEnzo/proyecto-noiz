@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../db');
 const requireAuthApi = require('../middleware/requireAuthApi');
 const createLimiter = require('../middleware/apiLimiter');
-const { getPopularTracks, searchTracks, getTracksByTag } = require('../services/youtube');
+const { getPopularTracks, searchTracks, getTracksByTag, getArtistTracks } = require('../services/youtube');
 const { getRecommendations } = require('../services/recommendations');
 
 const router = express.Router();
@@ -62,6 +62,22 @@ router.get('/search', async (req, res) => {
     try {
         const tracks = await searchTracks(query);
         res.json(tracks);
+    } catch (err) {
+        console.error(err);
+        res.status(502).json({ error: 'No se pudo conectar con YouTube.' });
+    }
+});
+
+router.get('/artist-tracks', async (req, res) => {
+    const artist = req.query.artist;
+    if (!artist) {
+        return res.status(400).json({ error: 'Falta el artista.' });
+    }
+
+    try {
+        const tracks = await getArtistTracks(artist);
+        const filtered = tracks.filter((t) => t.id !== req.query.excludeId).slice(0, 3);
+        res.json(filtered);
     } catch (err) {
         console.error(err);
         res.status(502).json({ error: 'No se pudo conectar con YouTube.' });

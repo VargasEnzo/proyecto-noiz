@@ -30,7 +30,7 @@ Aparece un montón en este proyecto, vale la pena explicarlo una vez: un middlew
 | Archivo | Prefijo | Qué expone |
 |---|---|---|
 | [auth.js](../server/routes/auth.js) | `/api` | Registro (no autentica hasta confirmar el mail), login, logout, verificación de email y su reenvío, "olvidé mi contraseña", "cambiar contraseña", `GET/PUT /api/me` (perfil del usuario logueado), y `POST /api/heartbeat` (le avisa al server que el usuario sigue conectado — ver la sección de presencia más abajo). |
-| [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` (piden datos al servicio de YouTube) y `/recommendations` (recomendaciones personalizadas — ver más abajo). |
+| [music.js](../server/routes/music.js) | `/api/music` | `/popular`, `/genre`, `/search` (piden datos al servicio de YouTube), `/recommendations` (recomendaciones personalizadas — ver más abajo) y `/artist-tracks` (hasta 3 canciones de un artista, excluyendo una por id — alimenta el panel "Más de este artista", ver [02-frontend.md](02-frontend.md)). |
 | [playlists.js](../server/routes/playlists.js) | `/api/playlists` | CRUD de playlists del usuario logueado y de las canciones dentro de cada una. |
 | [admin.js](../server/routes/admin.js) | `/api/admin` | Estadísticas, listado de usuarios (con su estado online/offline), cambiar el plan de un usuario, borrar una cuenta, y la cuota de YouTube usada hoy. Todo detrás de `requireAdmin`. |
 
@@ -40,7 +40,7 @@ Un detalle que se repite en `playlists.js`: cada ruta que toca una playlist espe
 
 Un "servicio" acá es simplemente un módulo que sabe hablar con algo externo, para que las rutas no tengan ese detalle mezclado con la lógica HTTP.
 
-- **[youtube.js](../server/services/youtube.js)**: le pide canciones a la YouTube Data API v3 (búsqueda, populares, por género). También es donde se registra cuánta "cuota" (quota) se gasta en cada llamada — ver la sección de cuota más abajo.
+- **[youtube.js](../server/services/youtube.js)**: le pide canciones a la YouTube Data API v3 (búsqueda, populares, por género, y `getArtistTracks()` para "más de este artista" — cacheado 30 min por artista, mismo motivo de costo que el caché de `recommendations.js`). También es donde se registra cuánta "cuota" (quota) se gasta en cada llamada — ver la sección de cuota más abajo.
 - **[mailer.js](../server/services/mailer.js)**: manda el mail de recuperación de contraseña usando la API de SendGrid.
 - **[quota.js](../server/services/quota.js)**: lleva la cuenta de cuánta cuota de YouTube se gastó hoy (guardada en la base de datos, para que sobreviva a un reinicio del servidor).
 - **[presence.js](../server/services/presence.js)**: quién está conectado ahora mismo. Un `Map<userId, timestamp>` **en memoria**, no en la base — es un estado efímero (ver la sección siguiente).
@@ -54,16 +54,18 @@ El dashboard (`js/dashboard/main.js`) manda un `POST /api/heartbeat` cada 20 seg
 
 Se descartó WebSockets a propósito: darían un estado más instantáneo de verdad, pero Render (plan gratis) duerme el server por inactividad, y sostener conexiones persistentes abiertas choca justo con eso — además de sumar el problema de manejar reconexión del lado del cliente. El heartbeat cada 20s es "tiempo real" con margen suficiente para este caso de uso, sin esa complejidad.
 
-### "Recomendado": por playlists y búsquedas, no un pool genérico
+### Recomendaciones personalizadas: por playlists y búsquedas, no un pool genérico
 
-Antes, la sección "Recomendado" del dashboard mostraba los artistas más repetidos dentro del pool de canciones "populares" — lo mismo para cualquier usuario, sin mirar qué hace cada uno. `recommendations.js` arma algo personalizado:
+Esto alimenta "Inicio" ([02-frontend.md](02-frontend.md); antes tenía su propio widget aparte, "Recomendado", pero ese lugar en la pantalla pasó a ser un panel de "reproduciendo ahora" — ver la nota de layout más abajo). `recommendations.js` arma algo personalizado en vez de mostrarle a todos el mismo pool de "populares":
 
-1. Reúne artistas "semilla": los de las playlists del usuario (más recientes primero) + los que resuelve `lastfm.resolveArtistFromQuery()` a partir de sus últimas búsquedas en `search_history` (una tabla que guarda cada `GET /api/music/search`, podada a las últimas 30 filas por usuario). Si no hay ninguna semilla (cuenta nueva, sin playlists ni búsquedas todavía), devuelve `[]` — el frontend cae al fallback de siempre, no se rompe la sección.
+1. Reúne artistas "semilla": los de las playlists del usuario (más recientes primero) + los que resuelve `lastfm.resolveArtistFromQuery()` a partir de sus últimas búsquedas en `search_history` (una tabla que guarda cada `GET /api/music/search`, podada a las últimas 30 filas por usuario). Si no hay ninguna semilla (cuenta nueva, sin playlists ni búsquedas todavía), devuelve `[]` — "Inicio" se queda con el catálogo popular de siempre, no se rompe nada.
 2. Para cada semilla, `lastfm.getSimilarArtists()` trae artistas parecidos; se juntan, se rankean por cuántas semillas distintas los sugirieron, y se descartan los que el usuario ya tiene entre sus semillas (no tiene sentido recomendarle lo que ya escucha).
 3. A los primeros 6, se les busca una canción real con `youtube.searchTracks()` (la misma función que ya usan `/genre` y `/search` — no hubo que escribir nada nuevo para YouTube acá) y se toma el primer resultado.
 4. El resultado se **cachea en memoria por usuario, 30 minutos**. Importante por costo: armar esto de cero puede llegar a gastar unas 600 unidades de cuota de YouTube (hasta 6 búsquedas × 101 unidades cada una, ver la sección de cuota) — no es algo que se pueda recalcular en cada carga del dashboard.
 
 Por qué Last.fm y no Spotify: Spotify deprecó justo los endpoints que servirían acá (`audio-features`, `related-artists`, `recommendations`) para cualquier app creada después de noviembre de 2024 — no son una opción real hoy. Last.fm sigue teniendo `artist.getsimilar` gratis y sin esa restricción. Requiere `LASTFM_API_KEY` (ver [05-pwa-y-deploy.md](05-pwa-y-deploy.md)) — sin ella, el endpoint no rompe nada, solo devuelve `[]` (cada llamada a Last.fm falla, se loguea el error, y se sigue de largo).
+
+**Cómo llega a "Inicio"**: `main.js` pide `/api/music/popular` de entrada (rápido, cacheado 10 min) para no bloquear la carga inicial del dashboard, y en paralelo — sin esperarlo — pide `/api/music/recommendations`. Si esta segunda llamada vuelve con canciones, se anteponen a `state.homeSongs` (sin duplicar las que ya estaban) y se vuelve a pintar "Inicio" si el usuario sigue ahí parado; el hero ("Top del momento", ver [02-frontend.md](02-frontend.md)) pasa a mostrar la primera de esas canciones. Si el usuario no tiene semillas todavía, esa segunda llamada devuelve `[]` y "Inicio" se queda tal cual estaba con el catálogo popular.
 
 ### La cuota de YouTube, explicada
 

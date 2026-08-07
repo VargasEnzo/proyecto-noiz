@@ -90,6 +90,24 @@ async function getPopularTracks() {
     return tracks;
 }
 
+const artistTracksCache = new Map(); // artista (lowercase) -> { tracks, cachedAt }
+const ARTIST_TRACKS_CACHE_MS = 30 * 60 * 1000;
+
+// Usada por el panel "Mas de este artista": cachea por artista para no
+// gastar 100 unidades de cuota (search.list) cada vez que alguien reproduce
+// una cancion de un artista que ya se busco hace poco.
+async function getArtistTracks(artist) {
+    const key = artist.toLowerCase();
+    const cached = artistTracksCache.get(key);
+    if (cached && Date.now() - cached.cachedAt < ARTIST_TRACKS_CACHE_MS) {
+        return cached.tracks;
+    }
+
+    const tracks = await searchTracks(artist);
+    artistTracksCache.set(key, { tracks, cachedAt: Date.now() });
+    return tracks;
+}
+
 async function searchTracks(query) {
     const searchBody = await fetchJson('search', {
         part: 'snippet',
@@ -107,4 +125,4 @@ function getTracksByTag(tag) {
     return searchTracks(`${tag} official music`);
 }
 
-module.exports = { getPopularTracks, searchTracks, getTracksByTag };
+module.exports = { getPopularTracks, searchTracks, getTracksByTag, getArtistTracks };
