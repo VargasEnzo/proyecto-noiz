@@ -8,11 +8,6 @@
   display: none !important;
 }
 
-/* Solo visible en el layout mobile (ver el media query mas abajo) */
-.mobile-only-section{
-  display: none;
-}
-
 /* Reproductor de YouTube: se usa para el audio, nunca se muestra.
    Necesita un tamaño real (no 1x1) para que la API interna de YouTube
    inicialice bien la comunicacion con el iframe; se oculta con opacidad
@@ -59,7 +54,8 @@ header{
   display: grid;
   grid-template-columns: 22% 1fr;
   grid-template-rows: 1fr auto;
-  gap: 16px;
+  column-gap: 16px;
+  row-gap: 0;
 }
 
 /* Paneles vidriosos compartidos */
@@ -71,29 +67,34 @@ header{
   backdrop-filter: blur(14px);
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-glass-border);
-  border-radius: var(--radius-lg);
   color: var(--color-text);
 }
 
 .menu_side{
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 1 / 3;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  border-radius: var(--radius-lg);
 }
 
 /* song_side y discover_side viven juntos dentro de una misma caja "vidriosa"
    (antes eran dos cajas separadas con un hueco entre medio). El overflow:hidden
    ademas recorta a los dos hijos con el mismo borde redondeado del contenedor,
-   asi ninguno de los dos necesita redondear sus propias esquinas. */
+   asi ninguno de los dos necesita redondear sus propias esquinas.
+   La esquina inferior izquierda queda cuadrada (sin redondear) a proposito:
+   ahi abajo empieza el reproductor (.master_play), pegado sin hueco, para que
+   se sienta parte de la misma caja en vez de una barra flotante aparte. */
 .content_side{
   grid-column: 2;
   grid-row: 1;
   display: flex;
   overflow: hidden;
   min-height: 0;
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0;
 }
 
 .song_side{
@@ -118,16 +119,27 @@ header{
   padding: 20px;
   overflow-y: auto;
   min-height: 0;
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0;
 }
 
+/* Angosto a proposito (no llega hasta abajo de discover_side): termina justo
+   donde termina song_side, para leerse como el pie de esa caja y no como una
+   barra que cruza toda la pantalla. Sigue siendo un elemento de grid aparte
+   (no esta anidado dentro de .content_side) para que nunca quede tapado por
+   el panel de admin, que ocupa el mismo lugar que song_side/discover_side --
+   ver la nota sobre el reproductor persistente en docs/02-frontend.md. */
 .master_play{
-  grid-column: 1 / -1;
+  grid-column: 2;
   grid-row: 2;
+  margin-right: 300px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
   height: 70px;
+  border-top: none;
+  border-radius: 0 0 0 var(--radius-lg);
   overflow: hidden;
 }
 
@@ -1403,16 +1415,6 @@ header{
     display: none;
   }
 
-  /* En mobile el panel derecho (discover_side) esta oculto, asi que
-     "Mas de este artista" se muestra dentro del cajon hamburguesa en su lugar. */
-  .sidebar-section-header.mobile-only-section{
-    display: flex;
-  }
-
-  .playlist-list.mobile-only-section{
-    display: block;
-  }
-
   /* Barra superior compacta (logo + hamburguesa), reemplaza a la sidebar */
   .mobile-topbar{
     display: flex;
@@ -1495,11 +1497,18 @@ header{
     color: var(--color-text);
   }
 
+  /* En desktop el reproductor queda pegado (sin gap, esquinas cuadradas) al
+     pie de la caja central para leerse como una sola pieza -- ver la nota en
+     la regla de escritorio. En mobile cada uno vuelve a ser su propia caja
+     separada (como el resto de los paneles), así que hay que reponer el
+     borde/redondeo completo y sacar el margen que lo angostaba. */
   .content_side,
   #admin-view{
     grid-column: 1;
     grid-row: 2;
     min-width: 0;
+    border-bottom: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
   }
 
   .song_side,
@@ -1520,8 +1529,11 @@ header{
     grid-column: 1;
     grid-row: 3;
     min-width: 0;
+    margin-right: 0;
     padding: 0 12px;
     height: 64px;
+    border-top: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
   }
 
   .admin-stats{

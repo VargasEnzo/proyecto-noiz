@@ -1,8 +1,9 @@
 // Panel derecho (discover_side): ya no es "Recomendado" (eso se mudó a
 // poblar "Inicio", ver main.js) — ahora es un acompañante de lo que se está
 // reproduciendo: portada/título/artista de la canción actual, y debajo hasta
-// 3 canciones más del mismo artista. Se actualiza en cada loadMusic() (ver
-// player.js).
+// 10 canciones más del mismo artista. Solo existe en desktop (en mobile
+// discover_side está oculto, sin equivalente en el cajón hamburguesa). Se
+// actualiza en cada loadMusic() (ver player.js).
 
 import { state } from './state.js';
 import { escapeHtml, closeMobileMenu } from './utils.js';
@@ -13,8 +14,7 @@ const nowPlayingCardEl = document.getElementById('discover-now-playing'),
     nowPlayingCoverEl = document.getElementById('discover-now-playing-cover'),
     nowPlayingTitleEl = document.getElementById('discover-now-playing-title'),
     nowPlayingArtistEl = document.getElementById('discover-now-playing-artist'),
-    artistTracksListEl = document.getElementById('artist-tracks-list'),
-    mobileArtistTracksListEl = document.getElementById('mobile-artist-tracks-list');
+    artistTracksListEl = document.getElementById('artist-tracks-list');
 
 nowPlayingCardEl.addEventListener('click', openNowPlaying);
 
@@ -63,5 +63,4 @@ export async function renderArtistPanel(song) {
     if (thisRequest !== requestId) return;
 
     renderTrackRows(artistTracksListEl, tracks);
-    renderTrackRows(mobileArtistTracksListEl, tracks);
 }

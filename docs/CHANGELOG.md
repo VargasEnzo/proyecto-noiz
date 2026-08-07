@@ -4,6 +4,17 @@ Registro de cambios en lenguaje simple, más nuevo arriba. Es un complemento de 
 
 ---
 
+## 2026-08-07 (3) — El reproductor se integra a la caja central
+
+Feedback tras ver el rediseño ya desplegado, comparando contra una captura de referencia (una app tipo Apple Music/myplayai): el reproductor se sentía "desconectado" del resto, flotando aparte a todo el ancho de la pantalla.
+
+- **`master_play` ahora se ve pegado a `song_side`**: más angosto (no se mete debajo de `discover_side`, termina donde termina `song_side`) y sin hueco/borde doble entre los dos, para leerse como el pie de la misma caja en vez de una barra flotante separada. Sigue siendo un elemento de grid independiente (no anidado en `.content_side`) — si se metiera adentro, `#admin-view` lo taparía al entrar a Administración (ocupan la misma celda del grid), rompiendo la reproducción persistente. El detalle de cómo se logra el efecto "misma caja" sin anidarlo quedó documentado en [02-frontend.md](02-frontend.md). `.menu_side` pasa a ocupar las dos filas del grid (antes el reproductor, a todo el ancho, tapaba el hueco que quedaba debajo suyo).
+- **Se sacó la leyenda "Más de este artista" del cajón hamburguesa** (mobile) — quedaba colgada ahí, redundante con el panel derecho real. `discover.js` ya no renderiza esa lista dos veces, solo en desktop. De paso, `.mobile-only-section` quedó sin ningún elemento usándola — se limpiaron esas reglas CSS.
+
+Verificado: `node --test` sigue en 21/21. Sintaxis de `discover.js` chequeada con `node --check`.
+
+---
+
 ## 2026-08-07 (2) — Ajustes al rediseño: caja única, más canciones y créditos
 
 Feedback del usuario probando el rediseño anterior ya desplegado, más un pedido nuevo.
